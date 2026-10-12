@@ -7,13 +7,11 @@ import OrdersBySourceChart from '../components/dashboard/OrdersBySourceChart';
 import OrderTrendChart from '../components/dashboard/OrderTrendChart';
 import RecentOrdersTable from '../components/dashboard/RecentOrdersTable';
 import TopStations from '../components/dashboard/TopStations';
-import CustomerRatingMetrics from '../components/dashboard/CustomerRatingMetrics';
 import { useOutlets } from '../context/OutletContext';
 import {
   getDashboardPeriodData,
   getRecentOrders,
   getOutletHealthMetrics,
-  getCustomerRatingMetrics,
 } from '../utils/dashboardSelectors';
 import { formatCurrency } from '../utils/formatCurrency';
 
@@ -33,10 +31,6 @@ export default function Dashboard() {
   const outletHealth = useMemo(() => {
     return getOutletHealthMetrics(outlets);
   }, [outlets]);
-
-  const ratingMetrics = useMemo(() => {
-    return getCustomerRatingMetrics();
-  }, []);
 
   // Functional CSV Export (Section 19: "If included, export visible dataset to CSV")
   const handleExportCsv = () => {
@@ -188,9 +182,6 @@ export default function Dashboard() {
           />
         </div>
       </div>
-
-      {/* Row 5 — Customer Rating Metrics (Section 13) */}
-      <CustomerRatingMetrics ratingData={ratingMetrics} />
     </div>
   );
 }

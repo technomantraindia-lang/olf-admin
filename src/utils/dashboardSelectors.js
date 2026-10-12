@@ -1,7 +1,7 @@
 // Selectors and calculation helpers for OLF Stores Dashboard
 // Implements calculation rules defined in OLF_Admin_Dashboard_Specification.md (Section 6, 7, 8, 9, 10, 11)
 
-import { mockOrders, periodSummaries, mockCustomerRatingMetrics } from '../data/mockOrders';
+import { mockOrders, periodSummaries } from '../data/mockOrders';
 import { initialMockOutlets } from '../data/mockOutlets';
 
 /**
@@ -64,11 +64,4 @@ export function getOutletHealthMetrics(outlets = initialMockOutlets) {
     inactive,
     closed,
   };
-}
-
-/**
- * Returns customer rating performance data (Section 13).
- */
-export function getCustomerRatingMetrics() {
-  return mockCustomerRatingMetrics;
 }

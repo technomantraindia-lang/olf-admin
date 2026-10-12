@@ -6,7 +6,6 @@ import {
   getDashboardPeriodData,
   getRecentOrders,
   getOutletHealthMetrics,
-  getCustomerRatingMetrics,
 } from '../utils/dashboardSelectors';
 
 export const dashboardService = {
@@ -19,13 +18,11 @@ export const dashboardService = {
     const periodData = getDashboardPeriodData(dateRange);
     const recentOrders = getRecentOrders(5);
     const outletHealth = getOutletHealthMetrics(outletsList);
-    const customerRatings = getCustomerRatingMetrics();
 
     return {
       periodData,
       recentOrders,
       outletHealth,
-      customerRatings,
     };
   },
 };
