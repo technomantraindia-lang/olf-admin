@@ -106,6 +106,11 @@ export default function VendorForm({
     const errs = {};
 
     // Business info
+    if (formData.id && formData.id.trim()) {
+      if (!/^\d+$/.test(formData.id.trim())) {
+        errs.id = 'Vendor ID must contain numbers only (e.g. 1007)';
+      }
+    }
     if (!formData.businessName.trim()) {
       errs.businessName = 'Business name is required';
     }
@@ -239,12 +244,22 @@ export default function VendorForm({
             <input
               type="text"
               name="id"
+              inputMode="numeric"
               disabled={mode === 'edit'}
               value={formData.id}
-              onChange={handleChange}
-              placeholder="e.g. VND-007"
-              className="w-full px-3.5 py-2 text-sm font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all disabled:opacity-60"
+              onChange={(e) => {
+                // Only allow numbers
+                const val = e.target.value.replace(/\D/g, '');
+                handleChange({ target: { name: 'id', value: val } });
+              }}
+              placeholder="e.g. 1007 (Numeric only)"
+              className={`w-full px-3.5 py-2 text-sm font-mono bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all disabled:opacity-60 ${
+                errors.id ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
+              }`}
             />
+            {errors.id && (
+              <p className="text-xs text-rose-500 font-medium">{errors.id}</p>
+            )}
           </div>
 
           {/* Category */}

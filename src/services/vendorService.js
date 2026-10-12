@@ -1,6 +1,15 @@
 import { initialMockVendors } from '../data/mockVendors';
 
-const VENDOR_STORAGE_KEY = 'olf_stores_vendors_data_v1';
+const VENDOR_STORAGE_KEY = 'olf_stores_vendors_data_v2';
+
+const legacyVendorIdMap = {
+  'VND-001': '1001',
+  'VND-002': '1002',
+  'VND-003': '1003',
+  'VND-004': '1004',
+  'VND-005': '1005',
+  'VND-006': '1006',
+};
 
 export function getStoredVendorsSync() {
   try {
@@ -14,15 +23,24 @@ export function getStoredVendorsSync() {
       localStorage.setItem(VENDOR_STORAGE_KEY, JSON.stringify(initialMockVendors));
       return initialMockVendors;
     }
-    return parsed.map((v) => ({
-      ...v,
-      id: v.id || 'VND-001',
-      businessName: v.businessName || 'Unnamed Vendor',
-      status: v.status || 'Active',
-      metrics: v.metrics || { totalOrders: 0, grossOrderValue: 0, vendorEarnings: 0 },
-      documents: v.documents || [],
-      history: v.history || [],
-    }));
+    return parsed.map((v, index) => {
+      let cleanId = v.id ? String(v.id).trim() : '';
+      if (legacyVendorIdMap[cleanId]) {
+        cleanId = legacyVendorIdMap[cleanId];
+      } else if (!/^\d+$/.test(cleanId)) {
+        const extractedDigits = cleanId.replace(/\D/g, '');
+        cleanId = extractedDigits ? String(1000 + parseInt(extractedDigits, 10)) : String(1001 + index);
+      }
+      return {
+        ...v,
+        id: cleanId,
+        businessName: v.businessName || 'Unnamed Vendor',
+        status: v.status || 'Active',
+        metrics: v.metrics || { totalOrders: 0, grossOrderValue: 0, vendorEarnings: 0 },
+        documents: v.documents || [],
+        history: v.history || [],
+      };
+    });
   } catch (err) {
     console.warn('Error reading vendors from localStorage, using defaults:', err);
     return initialMockVendors;
@@ -73,18 +91,21 @@ export const vendorService = {
    */
   async getVendorById(id) {
     const allVendors = getStoredVendorsSync();
-    const vendor = allVendors.find((v) => v.id.toUpperCase() === String(id).toUpperCase());
+    const vendor = allVendors.find((v) => String(v.id).toUpperCase() === String(id).toUpperCase());
     return Promise.resolve(vendor || null);
   },
 
   /**
-   * Create new vendor
+   * Create new vendor with numeric-only ID
    */
   async createVendor(vendorData) {
     const allVendors = getStoredVendorsSync();
-    const newCount = allVendors.length + 1;
-    const generatedId =
-      vendorData.id?.trim() || `VND-${String(newCount).padStart(3, '0')}`;
+    const maxNumericId = allVendors.reduce((max, v) => {
+      const num = parseInt(v.id, 10);
+      return !isNaN(num) && num > max ? num : max;
+    }, 1000);
+    const customId = vendorData.id ? String(vendorData.id).trim() : '';
+    const generatedId = customId && /^\d+$/.test(customId) ? customId : String(maxNumericId + 1);
 
     const newVendor = {
       ...vendorData,

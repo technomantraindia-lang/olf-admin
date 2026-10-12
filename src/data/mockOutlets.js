@@ -2,7 +2,7 @@ export const initialMockOutlets = [
   // Vadodara (BRC)
   {
     id: 'OLF-BRC-001',
-    vendorId: 'VND-001', // Havmor Foods Pvt Ltd
+    vendorId: '1001', // Havmor Foods Pvt Ltd
     name: 'Havmor Express Kitchen',
     category: 'Multi-Cuisine & Fast Food',
     stationCode: 'BRC',
@@ -33,7 +33,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-BRC-002',
-    vendorId: 'VND-005', // Vidarbha Culinary
+    vendorId: '1005', // Vidarbha Culinary
     name: 'Shree Kathiyawadi Rasoi',
     category: 'Pure Veg & Regional',
     stationCode: 'BRC',
@@ -64,7 +64,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-BRC-003',
-    vendorId: 'VND-004', // Zaika Express
+    vendorId: '1004', // Zaika Express
     name: 'Sayaji Cloud Kitchen',
     category: 'North Indian & Mughlai',
     stationCode: 'BRC',
@@ -95,7 +95,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-BRC-004',
-    vendorId: 'VND-005', // Vidarbha Culinary
+    vendorId: '1005', // Vidarbha Culinary
     name: 'Railway Canteen Corner',
     category: 'Breakfast & Snacks',
     stationCode: 'BRC',
@@ -128,7 +128,7 @@ export const initialMockOutlets = [
   // Ahmedabad (ADI)
   {
     id: 'OLF-ADI-001',
-    vendorId: 'VND-001', // Havmor Foods Pvt Ltd
+    vendorId: '1001', // Havmor Foods Pvt Ltd
     name: 'Gwalia Sweets & Restaurant',
     category: 'Pure Veg & Sweets',
     stationCode: 'ADI',
@@ -159,7 +159,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-ADI-002',
-    vendorId: 'VND-002', // Sagar Ratna
+    vendorId: '1002', // Sagar Ratna
     name: 'Madras Cafe Express',
     category: 'South Indian',
     stationCode: 'ADI',
@@ -190,7 +190,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-ADI-003',
-    vendorId: 'VND-003', // Rawat Sweets
+    vendorId: '1003', // Rawat Sweets
     name: 'Sabarmati Food Plaza',
     category: 'Multi-Cuisine',
     stationCode: 'ADI',
@@ -221,7 +221,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-ADI-004',
-    vendorId: 'VND-006', // Royal Rajputana
+    vendorId: '1006', // Royal Rajputana
     name: 'City Bakers & Cafe',
     category: 'Bakery & Beverages',
     stationCode: 'ADI',
@@ -254,7 +254,7 @@ export const initialMockOutlets = [
   // Surat (ST)
   {
     id: 'OLF-ST-001',
-    vendorId: 'VND-001', // Havmor Foods Pvt Ltd
+    vendorId: '1001', // Havmor Foods Pvt Ltd
     name: 'Surti Zaika Kitchen',
     category: 'Regional & Snacks',
     stationCode: 'ST',
@@ -285,7 +285,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-ST-002',
-    vendorId: 'VND-004', // Zaika Express
+    vendorId: '1004', // Zaika Express
     name: 'Diamond City Biryani',
     category: 'Mughlai & Biryani',
     stationCode: 'ST',
@@ -316,7 +316,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-ST-003',
-    vendorId: 'VND-005', // Vidarbha Culinary
+    vendorId: '1005', // Vidarbha Culinary
     name: 'Tapti Express Meals',
     category: 'Fast Food',
     stationCode: 'ST',
@@ -349,7 +349,7 @@ export const initialMockOutlets = [
   // Mumbai Central (MMCT)
   {
     id: 'OLF-MMCT-001',
-    vendorId: 'VND-002', // Sagar Ratna
+    vendorId: '1002', // Sagar Ratna
     name: 'Bombay Dabbawala Express',
     category: 'North & South Indian',
     stationCode: 'MMCT',
@@ -380,7 +380,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-MMCT-002',
-    vendorId: 'VND-002', // Sagar Ratna
+    vendorId: '1002', // Sagar Ratna
     name: 'Coastal Spice Kitchen',
     category: 'Coastal & Multi-Cuisine',
     stationCode: 'MMCT',
@@ -411,7 +411,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-MMCT-003',
-    vendorId: 'VND-001', // Havmor Foods Pvt Ltd
+    vendorId: '1001', // Havmor Foods Pvt Ltd
     name: 'Subway & Wrap Station',
     category: 'Fast Food & Subs',
     stationCode: 'MMCT',
@@ -444,7 +444,7 @@ export const initialMockOutlets = [
   // Jaipur (JP)
   {
     id: 'OLF-JP-001',
-    vendorId: 'VND-003', // Rawat Sweets
+    vendorId: '1003', // Rawat Sweets
     name: 'Rawat Mishthan Bhandar',
     category: 'Rajasthani & Snacks',
     stationCode: 'JP',
@@ -475,7 +475,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-JP-002',
-    vendorId: 'VND-002', // Sagar Ratna
+    vendorId: '1002', // Sagar Ratna
     name: 'Pink City Rasoi',
     category: 'Pure Veg & North Indian',
     stationCode: 'JP',
@@ -506,7 +506,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-JP-003',
-    vendorId: 'VND-003', // Rawat Sweets
+    vendorId: '1003', // Rawat Sweets
     name: 'Marwar Highway Kitchen',
     category: 'Multi-Cuisine',
     stationCode: 'JP',
@@ -539,7 +539,7 @@ export const initialMockOutlets = [
   // Bhopal (BPL)
   {
     id: 'OLF-BPL-001',
-    vendorId: 'VND-004', // Zaika Express
+    vendorId: '1004', // Zaika Express
     name: 'Bhopali Zaika Darbar',
     category: 'Mughlai & North Indian',
     stationCode: 'BPL',
@@ -570,7 +570,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-BPL-002',
-    vendorId: 'VND-005', // Vidarbha Culinary
+    vendorId: '1005', // Vidarbha Culinary
     name: 'Manohar Dairy & Restaurant',
     category: 'Pure Veg & Fast Food',
     stationCode: 'BPL',
@@ -601,7 +601,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-BPL-003',
-    vendorId: 'VND-004', // Zaika Express
+    vendorId: '1004', // Zaika Express
     name: 'Lake City Express Diner',
     category: 'Snacks & Beverages',
     stationCode: 'BPL',
@@ -634,7 +634,7 @@ export const initialMockOutlets = [
   // Abu Road (ABR)
   {
     id: 'OLF-ABR-001',
-    vendorId: 'VND-001', // Havmor Foods Pvt Ltd
+    vendorId: '1001', // Havmor Foods Pvt Ltd
     name: 'Mount Abu Cloud Bites',
     category: 'Pure Veg & North Indian',
     stationCode: 'ABR',
@@ -665,7 +665,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-ABR-002',
-    vendorId: 'VND-003', // Rawat Sweets
+    vendorId: '1003', // Rawat Sweets
     name: 'Aravalli Express Kitchen',
     category: 'Fast Food & Snacks',
     stationCode: 'ABR',
@@ -698,7 +698,7 @@ export const initialMockOutlets = [
   // Akola (AK)
   {
     id: 'OLF-AK-001',
-    vendorId: 'VND-005', // Vidarbha Culinary
+    vendorId: '1005', // Vidarbha Culinary
     name: 'Vidarbha Spice Hub',
     category: 'Maharashtrian & Regional',
     stationCode: 'AK',
@@ -729,7 +729,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-AK-002',
-    vendorId: 'VND-005', // Vidarbha Culinary
+    vendorId: '1005', // Vidarbha Culinary
     name: 'Akola Junction Canteen',
     category: 'Multi-Cuisine',
     stationCode: 'AK',
@@ -760,7 +760,7 @@ export const initialMockOutlets = [
   },
   {
     id: 'OLF-AK-003',
-    vendorId: 'VND-005', // Vidarbha Culinary
+    vendorId: '1005', // Vidarbha Culinary
     name: 'Shree Ganesh Bhojanalaya',
     category: 'Pure Veg',
     stationCode: 'AK',

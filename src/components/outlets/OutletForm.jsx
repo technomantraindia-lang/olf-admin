@@ -40,7 +40,7 @@ export default function OutletForm({
     vendorId:
       initialData?.vendorId ||
       defaultVendorId ||
-      (vendors[0]?.id || 'VND-001'),
+      (vendors[0]?.id || '1001'),
     stationCode:
       initialData?.stationCode || preselectedStation?.code || 'BRC',
     stationName:

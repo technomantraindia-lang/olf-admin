@@ -1,7 +1,16 @@
 import { mockStations } from '../data/mockStations';
 import { initialMockOutlets } from '../data/mockOutlets';
 
-const STORAGE_KEY = 'olf_stores_outlets_data_v2';
+const STORAGE_KEY = 'olf_stores_outlets_data_v3';
+
+const legacyVendorIdMap = {
+  'VND-001': '1001',
+  'VND-002': '1002',
+  'VND-003': '1003',
+  'VND-004': '1004',
+  'VND-005': '1005',
+  'VND-006': '1006',
+};
 
 /**
  * Helper to get outlets from LocalStorage or initialize with mock data
@@ -20,7 +29,7 @@ export function getStoredOutletsSync() {
     }
     return parsed.map((o) => ({
       ...o,
-      vendorId: o.vendorId || 'VND-001',
+      vendorId: legacyVendorIdMap[o.vendorId] || o.vendorId || '1001',
       stationCode: o.stationCode || 'BRC',
       stationName: o.stationName || 'Vadodara',
       status: o.status || 'Active',

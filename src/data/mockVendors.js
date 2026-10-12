@@ -1,6 +1,6 @@
 export const initialMockVendors = [
   {
-    id: 'VND-001',
+    id: '1001',
     businessName: 'Havmor Foods Private Limited',
     category: 'Multi-Cuisine Quick Service',
     description: 'Premier food service enterprise operating railway platform kitchens, meal trays, and brand kiosks across Western & North-Western Railway divisions.',
@@ -34,7 +34,7 @@ export const initialMockVendors = [
     ],
   },
   {
-    id: 'VND-002',
+    id: '1002',
     businessName: 'Sagar Ratna Hospitality Group',
     category: 'Regional & Multi-Cuisine',
     description: 'Specializes in authentic South Indian, pure vegetarian North Indian meals, and hygienic commuter dining.',
@@ -65,7 +65,7 @@ export const initialMockVendors = [
     ],
   },
   {
-    id: 'VND-003',
+    id: '1003',
     businessName: 'Rawat Sweets & Caterers',
     category: 'Regional Rajasthani Cuisine',
     description: 'Renowned Rajasthani food chain famous for Pyaz Kachori, Dal Baati Churma, and travel sweet gift packs.',
@@ -96,7 +96,7 @@ export const initialMockVendors = [
     ],
   },
   {
-    id: 'VND-004',
+    id: '1004',
     businessName: 'Zaika Express Kitchens LLP',
     category: 'Mughlai & Biryani Specialists',
     description: 'Multi-city cloud kitchen brand preparing slow-cooked dum biryanis, kebabs, and north Indian gravy combos in leak-proof thermal containers.',
@@ -127,7 +127,7 @@ export const initialMockVendors = [
     ],
   },
   {
-    id: 'VND-005',
+    id: '1005',
     businessName: 'Vidarbha Culinary Services',
     category: 'Regional Maharashtrian & Fast Food',
     description: 'Regional catering enterprise focusing on Central Railway junction stops, delivering authentic Maharashtrian thalis, Saoji dishes, and breakfast snacks.',
@@ -157,7 +157,7 @@ export const initialMockVendors = [
     ],
   },
   {
-    id: 'VND-006',
+    id: '1006',
     businessName: 'Royal Rajputana Foodworks',
     category: 'Pure Veg & Regional',
     description: 'Catering vendor providing pure vegetarian satvik meals and breakfast snacks for passenger travel.',
