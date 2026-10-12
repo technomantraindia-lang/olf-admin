@@ -455,19 +455,62 @@ export const periodSummaries = {
   },
 };
 
-// Verified Customer Rating Metrics (Section 13)
-export const mockCustomerRatingMetrics = {
-  overallScore: 4.6,
-  totalReviews: 3840,
-  satisfactionRate: 94.2, // %
-  categories: [
-    { name: 'Food Quality & Taste', score: 4.7, pct: 94 },
-    { name: 'Coach Berth Delivery Punctuality', score: 4.8, pct: 96 },
-    { name: 'Thermal Food Packaging', score: 4.5, pct: 90 },
-    { name: 'Hygiene & FSSAI Standards', score: 4.7, pct: 94 },
-  ],
-  sourceComparison: {
-    irctcRating: 4.6,
-    olfRating: 4.7,
+// OLF Stores Admin Platform Overview (Exact metrics matching reference dashboard)
+export const platformOverview = {
+  todayOrders: 20,
+  totalOrdersAllTime: 12947,
+  revenue: 3756480.76,
+  customers: 1,
+  totalOutlets: 806,
+  activeOutlets: 343,
+  inactiveOutlets: 173,
+  scheduledClose: 35,
+  deletedOutlets: 299,
+  mostComplaints: 'Coming Soon',
+  mostOrderedFrom: 'Coming Soon',
+  topRatedRestaurant: 'Coming Soon',
+};
+
+// Weekly Order Analytics Dataset (Matching Order Analytics panel)
+export const weeklyOrderAnalytics = [
+  { day: 'Mon', fullDay: 'Monday', orders: 16, growth: '+5%', irctc: 11, olf: 5 },
+  { day: 'Tue', fullDay: 'Tuesday', orders: 20, growth: '+8%', irctc: 13, olf: 7 },
+  { day: 'Wed', fullDay: 'Wednesday', orders: 18, growth: '+2%', irctc: 12, olf: 6 },
+  { day: 'Thu', fullDay: 'Thursday', orders: 24, growth: '+14%', irctc: 16, olf: 8 },
+  { day: 'Fri', fullDay: 'Friday', orders: 28, growth: '+18%', irctc: 19, olf: 9 },
+  { day: 'Sat', fullDay: 'Saturday', orders: 32, growth: '+22%', irctc: 21, olf: 11 },
+  { day: 'Sun', fullDay: 'Sunday', orders: 25, growth: '+10%', irctc: 17, olf: 8 },
+];
+
+// Monthly Revenue Analytics Dataset (Matching Revenue Analytics panel with period selector)
+export const monthlyRevenueAnalytics = {
+  'Oct - Dec 2026': {
+    totalRevenue: 3756480.76,
+    growth: '+8.4%',
+    points: [
+      { label: 'Oct 2026', revenue: 1184200.25 },
+      { label: 'Nov 2026', revenue: 1248900.50 },
+      { label: 'Dec 2026', revenue: 1323380.01 },
+    ],
+  },
+  'Jul - Sep 2026': {
+    totalRevenue: 3120400.50,
+    growth: '+11.2%',
+    points: [
+      { label: 'Jul 2026', revenue: 980100.20 },
+      { label: 'Aug 2026', revenue: 1045200.30 },
+      { label: 'Sep 2026', revenue: 1095100.00 },
+    ],
+  },
+  'All Time': {
+    totalRevenue: 12480500.00,
+    growth: '+14.8%',
+    points: [
+      { label: 'Q1 2026', revenue: 2680000.00 },
+      { label: 'Q2 2026', revenue: 2950000.00 },
+      { label: 'Q3 2026', revenue: 3120400.00 },
+      { label: 'Q4 2026', revenue: 3730100.00 },
+    ],
   },
 };
+

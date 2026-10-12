@@ -1,7 +1,10 @@
-// Selectors and calculation helpers for OLF Stores Dashboard
-// Implements calculation rules defined in OLF_Admin_Dashboard_Specification.md (Section 6, 7, 8, 9, 10, 11)
-
-import { mockOrders, periodSummaries } from '../data/mockOrders';
+import {
+  mockOrders,
+  periodSummaries,
+  platformOverview,
+  weeklyOrderAnalytics,
+  monthlyRevenueAnalytics,
+} from '../data/mockOrders';
 import { initialMockOutlets } from '../data/mockOutlets';
 
 /**
@@ -65,3 +68,42 @@ export function getOutletHealthMetrics(outlets = initialMockOutlets) {
     closed,
   };
 }
+
+/**
+ * Returns platform overview 12-metric card values (matching reference dashboard)
+ */
+export function getPlatformOverviewMetrics(liveOutlets = []) {
+  const liveCount = Array.isArray(liveOutlets) ? liveOutlets.length : 0;
+  const initialCount = 8;
+  const addedOutlets = Math.max(0, liveCount - initialCount);
+
+  return {
+    todayOrders: platformOverview.todayOrders,
+    totalOrdersAllTime: platformOverview.totalOrdersAllTime,
+    revenue: platformOverview.revenue,
+    customers: platformOverview.customers,
+    totalOutlets: platformOverview.totalOutlets + addedOutlets,
+    activeOutlets: platformOverview.activeOutlets + addedOutlets,
+    inactiveOutlets: platformOverview.inactiveOutlets,
+    scheduledClose: platformOverview.scheduledClose,
+    deletedOutlets: platformOverview.deletedOutlets,
+    mostComplaints: platformOverview.mostComplaints,
+    mostOrderedFrom: platformOverview.mostOrderedFrom,
+    topRatedRestaurant: platformOverview.topRatedRestaurant,
+  };
+}
+
+/**
+ * Returns weekly order analytics breakdown
+ */
+export function getWeeklyOrderAnalytics() {
+  return weeklyOrderAnalytics;
+}
+
+/**
+ * Returns monthly revenue analytics breakdown
+ */
+export function getMonthlyRevenueAnalytics(rangeKey = 'Oct - Dec 2026') {
+  return monthlyRevenueAnalytics[rangeKey] || monthlyRevenueAnalytics['Oct - Dec 2026'];
+}
+
