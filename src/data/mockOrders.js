@@ -457,14 +457,14 @@ export const periodSummaries = {
 
 // OLF Stores Admin Platform Overview (Exact metrics matching reference dashboard)
 export const platformOverview = {
-  todayOrders: 20,
-  totalOrdersAllTime: 12947,
-  revenue: 3756480.76,
+  todayOrders: 24,
+  totalOrdersAllTime: 12951,
+  revenue: 3757507.92,
   customers: 1,
   totalOutlets: 806,
-  activeOutlets: 343,
-  inactiveOutlets: 173,
-  scheduledClose: 35,
+  activeOutlets: 338,
+  inactiveOutlets: 178,
+  scheduledClose: 40,
   deletedOutlets: 299,
   mostComplaints: 'Coming Soon',
   mostOrderedFrom: 'Coming Soon',

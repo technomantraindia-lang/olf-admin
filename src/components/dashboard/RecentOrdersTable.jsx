@@ -26,7 +26,7 @@ export default function RecentOrdersTable({ orders = [] }) {
 
         <Link
           to="/orders"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600 hover:text-orange-700 hover:underline"
         >
           <span>View All Orders</span>
           <ArrowRight className="w-3.5 h-3.5" />

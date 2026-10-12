@@ -147,10 +147,10 @@ export default function Header({ setIsMobileOpen }) {
         <button
           type="button"
           onClick={() => openPushNotice(null)}
-          className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-full border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+          className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-orange-700 bg-orange-50 rounded-full border border-orange-200 hover:bg-orange-100 transition-colors cursor-pointer"
           title="IRCTC e-Catering Integration Status"
         >
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <ShieldCheck className="w-3.5 h-3.5 text-orange-600" />
           <span>IRCTC Sync Ready</span>
         </button>
 
@@ -163,7 +163,7 @@ export default function Header({ setIsMobileOpen }) {
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white animate-pulse" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-white animate-pulse" />
           </button>
 
           {isNotificationsOpen && (
@@ -172,7 +172,7 @@ export default function Header({ setIsMobileOpen }) {
                 <span className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
                   Notifications
                 </span>
-                <span className="text-[11px] text-emerald-600 font-medium">3 unread</span>
+                <span className="text-[11px] text-orange-600 font-medium">3 unread</span>
               </div>
               <div className="divide-y divide-slate-50 max-h-72 overflow-y-auto">
                 <div className="p-3 hover:bg-slate-50 transition-colors">

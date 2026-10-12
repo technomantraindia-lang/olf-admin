@@ -28,7 +28,7 @@ export default function TopStations({
 
         <Link
           to="/outlets"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600 hover:text-orange-700 hover:underline"
         >
           <span>View All Hubs</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -70,7 +70,7 @@ export default function TopStations({
 
                     <Link
                       to={`/outlets/station/${station.code}`}
-                      className="font-medium text-slate-800 hover:text-emerald-700 hover:underline truncate"
+                      className="font-medium text-slate-800 hover:text-orange-600 hover:underline truncate"
                     >
                       {station.name}
                     </Link>
@@ -92,7 +92,7 @@ export default function TopStations({
                     style={{ width: `${progressPct}%` }}
                     className={`h-full rounded-md transition-all duration-500 ${
                       rank === 1
-                        ? 'bg-emerald-600'
+                        ? 'bg-orange-500'
                         : rank === 2
                         ? 'bg-blue-600'
                         : rank === 3

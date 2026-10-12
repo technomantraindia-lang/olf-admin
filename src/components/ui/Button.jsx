@@ -26,7 +26,9 @@ export default function Button({
 
   const variantStyles = {
     primary:
-      'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-md hover:shadow-slate-900/15 focus:ring-slate-900 border border-transparent shadow-xs',
+      'bg-orange-500 text-white hover:bg-orange-600 hover:shadow-md hover:shadow-orange-500/20 focus:ring-orange-500 border border-transparent shadow-xs',
+    brand:
+      'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 hover:shadow-md hover:shadow-orange-500/25 focus:ring-orange-500 border border-transparent shadow-xs',
     secondary:
       'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 hover:shadow-sm focus:ring-slate-300 border border-slate-200 shadow-xs',
     outline:

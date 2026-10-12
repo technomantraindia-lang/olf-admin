@@ -11,6 +11,8 @@ import {
   Users,
   BookOpen,
   AlertTriangle,
+  FileText,
+  BarChart3,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
@@ -29,28 +31,33 @@ export default function Sidebar({
   // Keep submenus expanded if child route is active
   const isOutletsActive = location.pathname.startsWith('/outlets');
   const isOrdersActive = location.pathname.startsWith('/orders');
+  const isReportsActive = location.pathname.startsWith('/reports');
+  const isStationsActive = location.pathname.startsWith('/stations');
 
   const [outletsExpanded, setOutletsExpanded] = useState(true);
   const [ordersExpanded, setOrdersExpanded] = useState(false);
+  const [reportsExpanded, setReportsExpanded] = useState(false);
+  const [stationsExpanded, setStationsExpanded] = useState(false);
 
   const closeMobile = () => {
     if (setIsMobileOpen) setIsMobileOpen(false);
   };
 
+  // Orange theme active and hover states matching reference screenshot
   const navItemClass = (isActive) =>
     clsx(
       'flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 group cursor-pointer',
       isActive
-        ? 'bg-emerald-50 text-emerald-800 font-semibold border-r-2 border-emerald-600 shadow-2xs'
-        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/90 hover:translate-x-0.5'
+        ? 'bg-orange-50 text-orange-600 font-semibold border-r-2 border-orange-500 shadow-2xs'
+        : 'text-slate-600 hover:text-orange-600 hover:bg-orange-50/50 hover:translate-x-0.5'
     );
 
   const subItemClass = (isActive) =>
     clsx(
       'flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 pl-9 cursor-pointer',
       isActive
-        ? 'text-emerald-700 bg-emerald-50/90 font-semibold'
-        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 hover:translate-x-0.5'
+        ? 'text-orange-600 bg-orange-50/80 font-semibold'
+        : 'text-slate-500 hover:text-orange-600 hover:bg-orange-50/40 hover:translate-x-0.5'
     );
 
   return (
@@ -73,23 +80,33 @@ export default function Sidebar({
           isCollapsed ? 'w-20' : 'w-64'
         )}
       >
-        {/* Brand / Logo Header */}
+        {/* Brand / Logo Header (OLF Orange Logo matching reference screenshot) */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-100">
           <NavLink
             to="/dashboard"
             onClick={closeMobile}
-            className="flex items-center gap-2.5 overflow-hidden"
+            className="flex items-center gap-2.5 overflow-hidden group"
           >
-            <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold shrink-0 shadow-xs">
-              <Train className="w-5 h-5" />
+            {/* OLF Cloche/Serving Plate Mark */}
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-orange-600 flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5 text-white"
+              >
+                <path d="M18 15H6a1 1 0 0 1-1-1 7 7 0 0 1 14 0 1 1 0 0 1-1 1Z" />
+                <path d="M12 4v4" />
+                <path d="M4 19h16" />
+              </svg>
             </div>
             {!isCollapsed && (
-              <div className="flex flex-col leading-tight">
-                <span className="font-bold text-slate-900 text-base tracking-tight">
-                  OLF Stores
-                </span>
-                <span className="text-[11px] font-medium text-emerald-600">
-                  Station Admin Portal
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-orange-500 text-2xl tracking-tight">
+                  OLF
                 </span>
               </div>
             )}
@@ -113,7 +130,7 @@ export default function Sidebar({
             className={({ isActive }) => navItemClass(isActive)}
             title={isCollapsed ? 'Dashboard' : undefined}
           >
-            <LayoutDashboard className="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-700" />
+            <LayoutDashboard className="w-5 h-5 shrink-0 text-orange-500" />
             {!isCollapsed && <span>Dashboard</span>}
           </NavLink>
 
@@ -131,14 +148,14 @@ export default function Sidebar({
               )}
               title={isCollapsed ? 'Orders' : undefined}
             >
-              <ShoppingBag className="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-700" />
+              <ShoppingBag className="w-5 h-5 shrink-0 text-orange-500" />
               {!isCollapsed && (
                 <>
                   <span className="flex-1 text-left">Orders</span>
                   {ordersExpanded ? (
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                    <ChevronDown className="w-4 h-4 text-orange-500" />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                    <ChevronRight className="w-4 h-4 text-orange-500" />
                   )}
                 </>
               )}
@@ -170,7 +187,7 @@ export default function Sidebar({
             )}
           </div>
 
-          {/* Outlets Module (Main active module) */}
+          {/* Outlets Module */}
           <div>
             <button
               type="button"
@@ -184,16 +201,16 @@ export default function Sidebar({
               )}
               title={isCollapsed ? 'Outlets' : undefined}
             >
-              <Store className="w-5 h-5 shrink-0 text-emerald-600" />
+              <Store className="w-5 h-5 shrink-0 text-orange-500" />
               {!isCollapsed && (
                 <>
-                  <span className="flex-1 text-left font-semibold text-slate-900">
+                  <span className="flex-1 text-left font-medium">
                     Outlets
                   </span>
                   {outletsExpanded ? (
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                    <ChevronDown className="w-4 h-4 text-orange-500" />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                    <ChevronRight className="w-4 h-4 text-orange-500" />
                   )}
                 </>
               )}
@@ -255,7 +272,7 @@ export default function Sidebar({
                   onClick={closeMobile}
                   className={({ isActive }) => subItemClass(isActive)}
                 >
-                  Deleted / Archived Outlets
+                  Deleted Outlets
                 </NavLink>
               </div>
             )}
@@ -268,20 +285,45 @@ export default function Sidebar({
             className={({ isActive }) => navItemClass(isActive)}
             title={isCollapsed ? 'Withdraw Requests' : undefined}
           >
-            <Wallet className="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-700" />
+            <Wallet className="w-5 h-5 shrink-0 text-orange-500" />
             {!isCollapsed && <span>Withdraw Requests</span>}
           </NavLink>
 
           {/* Railway Stations */}
-          <NavLink
-            to="/stations"
-            onClick={closeMobile}
-            className={({ isActive }) => navItemClass(isActive)}
-            title={isCollapsed ? 'Railway Stations' : undefined}
-          >
-            <Train className="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-700" />
-            {!isCollapsed && <span>Railway Stations</span>}
-          </NavLink>
+          <div>
+            <button
+              type="button"
+              onClick={() => {
+                if (isCollapsed) setIsCollapsed(false);
+                setStationsExpanded(!stationsExpanded);
+              }}
+              className={clsx('w-full', navItemClass(isStationsActive))}
+              title={isCollapsed ? 'Railway Stations' : undefined}
+            >
+              <Train className="w-5 h-5 shrink-0 text-orange-500" />
+              {!isCollapsed && (
+                <>
+                  <span className="flex-1 text-left">Railway Stations</span>
+                  {stationsExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-orange-500" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-orange-500" />
+                  )}
+                </>
+              )}
+            </button>
+            {!isCollapsed && stationsExpanded && (
+              <div className="mt-1 space-y-0.5 animate-in fade-in duration-150">
+                <NavLink
+                  to="/stations"
+                  onClick={closeMobile}
+                  className={({ isActive }) => subItemClass(isActive)}
+                >
+                  All Stations
+                </NavLink>
+              </div>
+            )}
+          </div>
 
           {/* Queries */}
           <NavLink
@@ -290,7 +332,7 @@ export default function Sidebar({
             className={({ isActive }) => navItemClass(isActive)}
             title={isCollapsed ? 'Queries' : undefined}
           >
-            <HelpCircle className="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-700" />
+            <HelpCircle className="w-5 h-5 shrink-0 text-orange-500" />
             {!isCollapsed && <span>Queries</span>}
           </NavLink>
 
@@ -301,7 +343,7 @@ export default function Sidebar({
             className={({ isActive }) => navItemClass(isActive)}
             title={isCollapsed ? 'Human Resources' : undefined}
           >
-            <Users className="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-700" />
+            <Users className="w-5 h-5 shrink-0 text-orange-500" />
             {!isCollapsed && <span>Human Resources</span>}
           </NavLink>
 
@@ -312,7 +354,7 @@ export default function Sidebar({
             className={({ isActive }) => navItemClass(isActive)}
             title={isCollapsed ? 'Blogs' : undefined}
           >
-            <BookOpen className="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-700" />
+            <BookOpen className="w-5 h-5 shrink-0 text-orange-500" />
             {!isCollapsed && <span>Blogs</span>}
           </NavLink>
 
@@ -323,41 +365,80 @@ export default function Sidebar({
             className={({ isActive }) => navItemClass(isActive)}
             title={isCollapsed ? 'Complaints' : undefined}
           >
-            <AlertTriangle className="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-700" />
+            <AlertTriangle className="w-5 h-5 shrink-0 text-orange-500" />
             {!isCollapsed && <span>Complaints</span>}
           </NavLink>
-        </div>
 
-        {/* Sidebar Footer / System Badge */}
-        <div className="p-3 border-t border-slate-100 bg-slate-50/50">
-          {!isCollapsed ? (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
-                  IRCTC Sync Ready
-                </span>
-                <span className="font-mono text-[10px] text-slate-400">v1.2</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsCollapsed(true)}
-                className="hidden lg:flex items-center justify-center gap-1.5 w-full py-1 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded-md transition-colors cursor-pointer"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Collapse Sidebar</span>
-              </button>
-            </div>
-          ) : (
+          {/* Invoices */}
+          <NavLink
+            to="/invoices"
+            onClick={closeMobile}
+            className={({ isActive }) => navItemClass(isActive)}
+            title={isCollapsed ? 'Invoices' : undefined}
+          >
+            <FileText className="w-5 h-5 shrink-0 text-orange-500" />
+            {!isCollapsed && <span>Invoices</span>}
+          </NavLink>
+
+          {/* Reports (with Complaint Feedback sub-item matching screenshot) */}
+          <div>
             <button
               type="button"
-              onClick={() => setIsCollapsed(false)}
-              className="w-full flex items-center justify-center p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded-md transition-colors cursor-pointer"
-              title="Expand Sidebar"
+              onClick={() => {
+                if (isCollapsed) setIsCollapsed(false);
+                setReportsExpanded(!reportsExpanded);
+              }}
+              className={clsx('w-full', navItemClass(isReportsActive))}
+              title={isCollapsed ? 'Reports' : undefined}
             >
-              <ChevronRight className="w-4 h-4" />
+              <BarChart3 className="w-5 h-5 shrink-0 text-orange-500" />
+              {!isCollapsed && (
+                <>
+                  <span className="flex-1 text-left">Reports</span>
+                  {reportsExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-orange-500" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-orange-500" />
+                  )}
+                </>
+              )}
             </button>
-          )}
+            {!isCollapsed && reportsExpanded && (
+              <div className="mt-1 space-y-0.5 animate-in fade-in duration-150">
+                <NavLink
+                  to="/reports/complaint-feedback"
+                  onClick={closeMobile}
+                  className={({ isActive }) => subItemClass(isActive)}
+                >
+                  Complaint Feedback
+                </NavLink>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sidebar Footer / User Profile matching Image 1 ("CN Super Admin superadmin@olfstores.com") */}
+        <div className="border-t border-slate-100 bg-white">
+          <div className="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors cursor-pointer select-none">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                CN
+              </div>
+              {!isCollapsed && (
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-semibold text-slate-900 truncate">
+                    Super Admin
+                  </span>
+                  <span className="text-[11px] text-slate-400 truncate">
+                    superadmin@olfstores.com
+                  </span>
+                </div>
+              )}
+            </div>
+            {!isCollapsed && (
+              <ChevronDown className="w-4 h-4 text-orange-500 shrink-0" />
+            )}
+          </div>
         </div>
       </aside>
     </>

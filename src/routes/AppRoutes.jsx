@@ -109,6 +109,18 @@ export default function AppRoutes() {
             />
           }
         />
+        <Route
+          path="invoices"
+          element={<ComingSoon title="Invoices & GST Settlements" />}
+        />
+        <Route
+          path="reports"
+          element={<ComingSoon title="Platform Reports & Analytics" />}
+        />
+        <Route
+          path="reports/complaint-feedback"
+          element={<ComingSoon title="Complaint Feedback Reports" />}
+        />
 
         {/* Catch-all 404 Route */}
         <Route path="*" element={<NotFound />} />
