@@ -76,7 +76,7 @@ export default function Sidebar({
         {/* Brand / Logo Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-100">
           <NavLink
-            to="/outlets"
+            to="/dashboard"
             onClick={closeMobile}
             className="flex items-center gap-2.5 overflow-hidden"
           >

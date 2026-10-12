@@ -13,6 +13,7 @@ import AddVendor from '../pages/vendors/AddVendor';
 import EditVendor from '../pages/vendors/EditVendor';
 import VendorDetails from '../pages/vendors/VendorDetails';
 
+import Dashboard from '../pages/Dashboard';
 import ComingSoon from '../pages/ComingSoon';
 import NotFound from '../pages/NotFound';
 
@@ -20,8 +21,8 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<AdminLayout />}>
-        {/* Default redirect to Outlets */}
-        <Route index element={<Navigate to="/outlets" replace />} />
+        {/* Default route to Dashboard */}
+        <Route index element={<Navigate to="/dashboard" replace />} />
 
         {/* 1. Outlets Overview & Master Views */}
         <Route path="outlets" element={<OutletsOverview />} />
@@ -51,16 +52,8 @@ export default function AppRoutes() {
         <Route path="vendors" element={<Navigate to="/outlets/vendors" replace />} />
         <Route path="vendors/*" element={<Navigate to="/outlets/vendors" replace />} />
 
-        {/* Sidebar Staging / Coming Soon Routes */}
-        <Route
-          path="dashboard"
-          element={
-            <ComingSoon
-              title="Operational Dashboard"
-              description="Live platform KPIs, passenger order velocity, and train arrival timelines."
-            />
-          }
-        />
+        {/* Dashboard Operational Route */}
+        <Route path="dashboard" element={<Dashboard />} />
         <Route
           path="orders"
           element={<ComingSoon title="Orders Management" />}
