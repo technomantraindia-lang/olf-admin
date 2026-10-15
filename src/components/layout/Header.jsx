@@ -89,29 +89,24 @@ export default function Header({ setIsMobileOpen }) {
           <Menu className="w-6 h-6" />
         </button>
 
-        {/* Brand Logo with stylized multi-color accent line */}
+        {/* Brand Logo */}
         <Link
           to="/dashboard"
-          className="flex items-center gap-2 group cursor-pointer shrink-0"
+          className="flex items-center gap-2.5 group cursor-pointer shrink-0"
           title="OLF Admin Dashboard"
         >
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 leading-none">
-              <span className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors font-sans">
-                OLF
-              </span>
-              <span className="text-xs sm:text-[13px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60 hidden sm:inline-block">
-                Admin
-              </span>
-            </div>
-            {/* Stylized rainbow accent underline */}
-            <div className="flex h-[3.5px] w-full rounded-full overflow-hidden mt-1 gap-0.5">
-              <span className="w-3 bg-rose-500 rounded-full" />
-              <span className="w-3 bg-amber-400 rounded-full" />
-              <span className="w-3 bg-emerald-500 rounded-full" />
-              <span className="w-3 bg-cyan-500 rounded-full" />
-              <span className="w-3 bg-blue-600 rounded-full" />
-            </div>
+          <img
+            src="/logo.png"
+            alt="OLF Logo"
+            className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform drop-shadow-xs"
+          />
+          <div className="flex items-center gap-2 leading-none">
+            <span className="text-2xl sm:text-[25px] font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors font-sans">
+              OLF
+            </span>
+            <span className="text-xs sm:text-[12px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60 hidden sm:inline-block">
+              Admin
+            </span>
           </div>
         </Link>
 
