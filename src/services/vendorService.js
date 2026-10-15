@@ -1,6 +1,6 @@
 import { initialMockVendors } from '../data/mockVendors';
 
-const VENDOR_STORAGE_KEY = 'olf_stores_vendors_data_v2';
+const VENDOR_STORAGE_KEY = 'olf_stores_vendors_data_v4';
 
 const legacyVendorIdMap = {
   'VND-001': '1001',
@@ -15,14 +15,17 @@ export function getStoredVendorsSync() {
   try {
     const raw = localStorage.getItem(VENDOR_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(VENDOR_STORAGE_KEY, JSON.stringify(initialMockVendors));
+      if (initialMockVendors.length > 0) {
+        localStorage.setItem(VENDOR_STORAGE_KEY, JSON.stringify(initialMockVendors));
+      }
       return initialMockVendors;
     }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      localStorage.setItem(VENDOR_STORAGE_KEY, JSON.stringify(initialMockVendors));
-      return initialMockVendors;
+    if (!Array.isArray(parsed)) {
+      return [];
     }
+
+    // Migrate any legacy IDs if present
     return parsed.map((v, index) => {
       let cleanId = v.id ? String(v.id).trim() : '';
       if (legacyVendorIdMap[cleanId]) {
@@ -34,7 +37,9 @@ export function getStoredVendorsSync() {
       return {
         ...v,
         id: cleanId,
-        businessName: v.businessName || 'Unnamed Vendor',
+        legalName: v.legalName || v.businessName || 'Unnamed Vendor',
+        brandName: v.brandName || v.businessName || 'Unnamed Vendor',
+        businessName: v.businessName || v.legalName || 'Unnamed Vendor',
         status: v.status || 'Active',
         metrics: v.metrics || { totalOrders: 0, grossOrderValue: 0, vendorEarnings: 0 },
         documents: v.documents || [],
@@ -65,7 +70,7 @@ export const vendorService = {
 
     if (filters.status && filters.status !== 'ALL') {
       result = result.filter(
-        (v) => v.status.toLowerCase() === filters.status.toLowerCase()
+        (v) => (v.status || '').toLowerCase() === filters.status.toLowerCase()
       );
     }
 
@@ -73,13 +78,17 @@ export const vendorService = {
       const q = filters.search.toLowerCase().trim();
       result = result.filter(
         (v) =>
-          v.businessName.toLowerCase().includes(q) ||
-          v.id.toLowerCase().includes(q) ||
-          v.contactPerson.toLowerCase().includes(q) ||
-          v.phone.includes(q) ||
-          v.email.toLowerCase().includes(q) ||
-          v.city.toLowerCase().includes(q) ||
-          v.category.toLowerCase().includes(q)
+          (v.businessName && v.businessName.toLowerCase().includes(q)) ||
+          (v.brandName && v.brandName.toLowerCase().includes(q)) ||
+          (v.legalName && v.legalName.toLowerCase().includes(q)) ||
+          (v.id && String(v.id).toLowerCase().includes(q)) ||
+          (v.panNumber && v.panNumber.toLowerCase().includes(q)) ||
+          (v.gstin && v.gstin.toLowerCase().includes(q)) ||
+          (v.contactPerson && v.contactPerson.toLowerCase().includes(q)) ||
+          (v.phone && String(v.phone).includes(q)) ||
+          (v.email && v.email.toLowerCase().includes(q)) ||
+          (v.city && v.city.toLowerCase().includes(q)) ||
+          (v.category && v.category.toLowerCase().includes(q))
       );
     }
 
@@ -96,7 +105,7 @@ export const vendorService = {
   },
 
   /**
-   * Create new vendor with numeric-only ID
+   * Create new vendor with numeric-only ID (e.g. 1007)
    */
   async createVendor(vendorData) {
     const allVendors = getStoredVendorsSync();
@@ -104,12 +113,16 @@ export const vendorService = {
       const num = parseInt(v.id, 10);
       return !isNaN(num) && num > max ? num : max;
     }, 1000);
+
     const customId = vendorData.id ? String(vendorData.id).trim() : '';
     const generatedId = customId && /^\d+$/.test(customId) ? customId : String(maxNumericId + 1);
 
     const newVendor = {
       ...vendorData,
       id: generatedId,
+      legalName: vendorData.legalName || vendorData.businessName || '',
+      brandName: vendorData.brandName || vendorData.businessName || '',
+      businessName: vendorData.businessName || vendorData.legalName || '',
       status: vendorData.status || 'Active',
       registrationDate: vendorData.registrationDate || new Date().toISOString().slice(0, 10),
       metrics: {
@@ -118,8 +131,10 @@ export const vendorService = {
         vendorEarnings: 0,
       },
       documents: vendorData.documents || [
-        { id: `DOC-${Date.now()}-1`, name: 'FSSAI License', category: 'Food Safety', status: 'Pending Review', expiryDate: '2027-12-31' },
-        { id: `DOC-${Date.now()}-2`, name: 'GST Certificate', category: 'Tax & Compliance', status: 'Pending Review', expiryDate: '2030-01-01' },
+        { id: 'DOC-1', name: 'FSSAI Central / State License', category: 'Food Safety', status: 'Pending Review', expiryDate: '2027-12-31' },
+        { id: 'DOC-2', name: 'GSTIN Registration Certificate', category: 'Tax & Compliance', status: 'Verified', expiryDate: '2030-01-01' },
+        { id: 'DOC-3', name: 'IRCTC Master Catering Agreement', category: 'Commercial Agreement', status: 'Pending Review', expiryDate: '2027-03-31' },
+        { id: 'DOC-4', name: 'Kitchen Hygiene & Safety Audit', category: 'Quality & Audit', status: 'Pending Review', expiryDate: '2026-09-30' },
       ],
       history: [
         {
@@ -143,7 +158,7 @@ export const vendorService = {
    */
   async updateVendor(id, updatedFields) {
     const allVendors = getStoredVendorsSync();
-    const index = allVendors.findIndex((v) => v.id.toUpperCase() === String(id).toUpperCase());
+    const index = allVendors.findIndex((v) => String(v.id).toUpperCase() === String(id).toUpperCase());
 
     if (index === -1) {
       return Promise.reject(new Error(`Vendor with ID ${id} not found.`));
@@ -153,7 +168,10 @@ export const vendorService = {
     const updatedVendor = {
       ...current,
       ...updatedFields,
-      id: current.id, // Immutable ID
+      id: current.id,
+      legalName: updatedFields.legalName || updatedFields.businessName || current.legalName,
+      brandName: updatedFields.brandName || updatedFields.businessName || current.brandName,
+      businessName: updatedFields.businessName || updatedFields.legalName || current.businessName,
       history: [
         ...(current.history || []),
         {
@@ -179,10 +197,10 @@ export const vendorService = {
     let updatedList;
 
     if (hardDelete) {
-      updatedList = allVendors.filter((v) => v.id.toUpperCase() !== String(id).toUpperCase());
+      updatedList = allVendors.filter((v) => String(v.id).toUpperCase() !== String(id).toUpperCase());
     } else {
       updatedList = allVendors.map((v) =>
-        v.id.toUpperCase() === String(id).toUpperCase()
+        String(v.id).toUpperCase() === String(id).toUpperCase()
           ? {
               ...v,
               status: 'Archived',
@@ -206,7 +224,44 @@ export const vendorService = {
   },
 
   /**
-   * Reset vendors to initial mock defaults
+   * Delete vendor record (permanently removes vendor from storage)
+   */
+  async deleteVendor(id, hardDelete = true) {
+    return this.archiveVendor(id, hardDelete);
+  },
+
+  /**
+   * Toggle block/unblock vendor status
+   */
+  async toggleBlockVendor(id) {
+    const allVendors = getStoredVendorsSync();
+    const index = allVendors.findIndex((v) => String(v.id).toUpperCase() === String(id).toUpperCase());
+    if (index === -1) {
+      return Promise.reject(new Error(`Vendor with ID ${id} not found.`));
+    }
+    const current = allVendors[index];
+    const newStatus = current.status === 'Blocked' ? 'Active' : 'Blocked';
+    const updatedVendor = {
+      ...current,
+      status: newStatus,
+      history: [
+        ...(current.history || []),
+        {
+          id: `H-${Date.now()}`,
+          event: newStatus === 'Blocked' ? 'Vendor Blocked' : 'Vendor Unblocked',
+          date: new Date().toISOString(),
+          notes: `Vendor status toggled to ${newStatus}.`,
+        },
+      ],
+      updatedAt: new Date().toISOString(),
+    };
+    allVendors[index] = updatedVendor;
+    saveStoredVendors(allVendors);
+    return Promise.resolve(updatedVendor);
+  },
+
+  /**
+   * Reset vendors to initial defaults
    */
   async resetToDefaults() {
     saveStoredVendors(initialMockVendors);
@@ -222,11 +277,11 @@ export const vendorService = {
 
     const total = list.filter((v) => v && v.status !== 'Archived').length;
     const active = list.filter((v) => v && v.status === 'Active').length;
+    const blocked = list.filter((v) => v && v.status === 'Blocked').length;
     const pending = list.filter((v) => v && v.status === 'Pending').length;
     const inactive = list.filter((v) => v && v.status === 'Inactive').length;
     const archived = list.filter((v) => v && v.status === 'Archived').length;
 
-    // Total associated outlets across active vendors
     const associatedOutlets = outlets.filter(
       (o) => o && o.status !== 'Archived' && o.status !== 'Deleted'
     ).length;
@@ -234,6 +289,7 @@ export const vendorService = {
     return {
       total,
       active,
+      blocked,
       pending,
       inactive,
       archived,

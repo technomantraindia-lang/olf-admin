@@ -1,19 +1,98 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Store,
-  MapPin,
-  Clock,
-  CreditCard,
-  Wallet,
-  AlertCircle,
-  Save,
   Building2,
-  ExternalLink,
   ShieldCheck,
+  Clock,
+  Leaf,
+  UtensilsCrossed,
+  Banknote,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  Plus,
+  Check,
+  Sparkles,
+  User,
+  Phone,
+  Mail,
+  Hash,
+  Upload,
+  FileText,
+  Camera,
+  Image as ImageIcon,
+  FileCheck,
+  Trash2,
 } from 'lucide-react';
-import Button from '../ui/Button';
 import { useOutlets } from '../../context/OutletContext';
+import { generateOutletId, getFssaiStatus } from '../../services/outletService';
+
+const COMPLIANCE_DOCS_CONFIG = [
+  {
+    key: 'fssaiCert',
+    title: 'FSSAI License Certificate',
+    category: 'Food Safety',
+    desc: '14-digit central/state food safety license',
+    icon: FileText,
+    accept: '.pdf,image/*',
+    isPhoto: false,
+  },
+  {
+    key: 'gstCert',
+    title: 'GSTIN Registration Certificate',
+    category: 'Tax Registration',
+    desc: '15-character commercial GST certificate',
+    icon: FileText,
+    accept: '.pdf,image/*',
+    isPhoto: false,
+  },
+  {
+    key: 'panCard',
+    title: 'Business PAN Card',
+    category: 'Corporate Identity',
+    desc: 'Company or proprietor PAN card copy',
+    icon: FileText,
+    accept: '.pdf,image/*',
+    isPhoto: false,
+  },
+  {
+    key: 'outletFrontImage',
+    title: 'Outlet Front Signage',
+    category: 'Storefront Facade',
+    desc: 'Exterior signage board & branding photo',
+    icon: Camera,
+    accept: 'image/*',
+    isPhoto: true,
+  },
+  {
+    key: 'kitchenAreaImage',
+    title: 'Kitchen Cooking Area',
+    category: 'Hygiene & Prep',
+    desc: 'Commercial prep stations & cooking stoves',
+    icon: Camera,
+    accept: 'image/*',
+    isPhoto: true,
+  },
+  {
+    key: 'takeawayAreaImage',
+    title: 'Takeaway Packaging Counter',
+    category: 'Order Dispatch',
+    desc: 'Meal packing, sealing & handover station',
+    icon: Camera,
+    accept: 'image/*',
+    isPhoto: true,
+  },
+  {
+    key: 'otherImages',
+    title: 'Cold Storage & Infrastructure',
+    category: 'Storage Infrastructure',
+    desc: 'Deep freeze, ingredient racks & refrigeration',
+    icon: ImageIcon,
+    accept: 'image/*',
+    isPhoto: true,
+  },
+];
 
 export default function OutletForm({
   initialData = null,
@@ -22,835 +101,1311 @@ export default function OutletForm({
   defaultVendorId = '',
 }) {
   const navigate = useNavigate();
-  const { stations, vendors, createOutlet, updateOutlet } = useOutlets();
+  const { stations, vendors, outlets, createOutlet, updateOutlet } = useOutlets();
 
-  // Find preselected station
-  const preselectedStation =
-    stations.find(
-      (s) =>
-        s.code.toUpperCase() ===
-        (initialData?.stationCode || defaultStationCode || '').toUpperCase()
-    ) || stations[0];
+  // Initial station determination
+  const initialStation =
+    initialData?.stationCode || defaultStationCode || stations[0]?.code || 'NDLS';
 
-  // Form State
+  // Form State: strictly Vendor Info, Basic Details, Business Details, Order Settings
   const [formData, setFormData] = useState({
-    name: initialData?.name || '',
-    id: initialData?.id || '',
-    category: initialData?.category || 'Multi-Cuisine & Fast Food',
+    // 1. Vendor Info
     vendorId:
       initialData?.vendorId ||
       defaultVendorId ||
-      (vendors[0]?.id || '1001'),
-    stationCode:
-      initialData?.stationCode || preselectedStation?.code || 'BRC',
-    stationName:
-      initialData?.stationName || preselectedStation?.name || 'Vadodara',
-    description: initialData?.description || '',
+      (vendors.length > 0 ? String(vendors[0].id) : ''),
 
-    // Contact
-    contactPerson: initialData?.contactPerson || '',
-    phone: initialData?.phone || '',
-    email: initialData?.email || '',
+    // 2. Basic Details
+    stationCode: initialStation,
+    id:
+      initialData?.id ||
+      (mode === 'create' ? generateOutletId(initialStation, outlets) : ''),
+    name: initialData?.name || '',
     address: initialData?.address || '',
-    city: initialData?.city || preselectedStation?.city || '',
-    state: initialData?.state || preselectedStation?.state || '',
-    pincode: initialData?.pincode || '',
+    managerName: initialData?.contact?.name || initialData?.managerName || '',
+    phone: initialData?.contact?.mobile || initialData?.phone || '',
+    email: initialData?.contact?.email || initialData?.email || '',
 
-    // Operations
-    openingTime: initialData?.openingTime || '07:00',
-    closingTime: initialData?.closingTime || '23:00',
-    prepTime: initialData?.prepTime ?? 20,
-    minOrderValue: initialData?.minOrderValue ?? 150,
+    // 3. Business Details
+    fssaiNo: initialData?.fssaiNo || '',
+    fssaiValidUpto: initialData?.fssaiValidUpto || '',
+    gstNo: initialData?.gstNo || initialData?.gstin || '',
+    panNo: initialData?.panNo || initialData?.panNumber || initialData?.pan || '',
+    mealType: initialData?.mealType === 'PURE_VEG' ? 'PURE_VEG' : 'NON_VEG',
+
+    // 4. Order Settings
+    bookingCutoff: initialData?.bookingCutoff ?? 30,
+    minOrderAmount: initialData?.minOrderAmount ?? 0,
+    distanceInMeters: initialData?.distanceInMeters ?? 250,
+    startTime: initialData?.schedules?.[0]?.startTime || initialData?.startTime || '08:00',
+    endTime: initialData?.schedules?.[0]?.endTime || initialData?.endTime || '22:00',
+    prepaid:
+      initialData?.prepaid === true || initialData?.paymentMode === 'PREPAID ONLY',
+    paymentMode:
+      initialData?.paymentMode ||
+      (initialData?.prepaid ? 'PREPAID ONLY' : 'COD & PREPAID'),
+    deliveryFeeLimits: Array.isArray(initialData?.deliveryFeeLimits)
+      ? initialData.deliveryFeeLimits
+      : [],
+    weeklyClosingDays: Array.isArray(initialData?.weeklyClosingDays)
+      ? initialData.weeklyClosingDays
+      : [],
     status: initialData?.status || 'Active',
+    listed: initialData?.listed !== false,
+  });
 
-    // Payments
-    paymentModes: {
-      cod: initialData?.paymentModes?.cod ?? true,
-      prepaid: initialData?.paymentModes?.prepaid ?? true,
-    },
-
-    // Wallet
-    wallet: {
-      balance: initialData?.wallet?.balance ?? 10000,
-      threshold: initialData?.wallet?.threshold ?? 4000,
-    },
+  // 5. Compliance Documents & Kitchen Photos State
+  const [documents, setDocuments] = useState(() => {
+    const defaultDocs = {
+      fssaiCert: null,
+      gstCert: null,
+      panCard: null,
+      outletFrontImage: null,
+      kitchenAreaImage: null,
+      takeawayAreaImage: null,
+      otherImages: null,
+    };
+    if (
+      initialData?.documents &&
+      typeof initialData.documents === 'object' &&
+      !Array.isArray(initialData.documents)
+    ) {
+      return { ...defaultDocs, ...initialData.documents };
+    }
+    return defaultDocs;
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sync station name when stationCode changes
-  const handleStationChange = (code) => {
-    const selected = stations.find((s) => s.code === code);
-    setFormData((prev) => ({
-      ...prev,
-      stationCode: code,
-      stationName: selected ? selected.name : prev.stationName,
-      city: selected ? selected.city : prev.city,
-      state: selected ? selected.state : prev.state,
-    }));
-  };
+  // Auto-generate Outlet ID on create mode when station changes
+  useEffect(() => {
+    if (mode === 'create' && !initialData) {
+      const activeStn =
+        formData.stationCode || defaultStationCode || stations[0]?.code || 'NDLS';
+      const autoId = generateOutletId(activeStn, outlets);
+      setFormData((prev) => ({
+        ...prev,
+        stationCode: activeStn,
+        id: autoId,
+      }));
+    }
+  }, [formData.stationCode, defaultStationCode, stations, outlets, mode, initialData]);
 
-  // Field change handler
+  // Set default vendor if not set
+  useEffect(() => {
+    if (defaultVendorId && !initialData) {
+      setFormData((prev) => ({ ...prev, vendorId: String(defaultVendorId) }));
+    } else if (!formData.vendorId && vendors.length > 0) {
+      setFormData((prev) => ({ ...prev, vendorId: String(vendors[0].id) }));
+    }
+  }, [defaultVendorId, vendors, initialData, formData.vendorId]);
+
+  // Find currently selected vendor
+  const selectedVendor = vendors.find(
+    (v) => String(v.id) === String(formData.vendorId)
+  );
+
+  // Handle generic input changes
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear field error on edit
+    const { name, value, type, checked } = e.target;
+    const finalVal = type === 'checkbox' ? checked : value;
+
+    setFormData((prev) => {
+      const next = { ...prev, [name]: finalVal };
+      if (name === 'stationCode' && mode === 'create') {
+        next.id = generateOutletId(finalVal, outlets);
+      }
+      return next;
+    });
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
-  // Nested payment handler
-  const handlePaymentToggle = (modeKey) => {
-    setFormData((prev) => {
-      const nextPayment = {
-        ...prev.paymentModes,
-        [modeKey]: !prev.paymentModes[modeKey],
-      };
-      return {
-        ...prev,
-        paymentModes: nextPayment,
-      };
-    });
-    if (errors.paymentModes) {
-      setErrors((prev) => ({ ...prev, paymentModes: null }));
-    }
-  };
+  // State and handlers for Delivery Fee Limits and Weekly Closing Days
+  const [deliveryInput, setDeliveryInput] = useState({ amount: '', fee: '' });
 
-  // Nested wallet handler
-  const handleWalletChange = (field, value) => {
+  const handleAddDeliveryFeeLimit = () => {
+    if (deliveryInput.amount === '' && deliveryInput.fee === '') return;
+    const amountVal = deliveryInput.amount !== '' ? Number(deliveryInput.amount) : 0;
+    const feeVal = deliveryInput.fee !== '' ? Number(deliveryInput.fee) : 0;
     setFormData((prev) => ({
       ...prev,
-      wallet: {
-        ...prev.wallet,
-        [field]: Number(value) || 0,
-      },
+      deliveryFeeLimits: [
+        ...(prev.deliveryFeeLimits || []),
+        { amount: amountVal, fee: feeVal },
+      ],
     }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: null }));
+    setDeliveryInput({ amount: '', fee: '' });
+  };
+
+  const handleRemoveDeliveryFeeLimit = (indexToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      deliveryFeeLimits: (prev.deliveryFeeLimits || []).filter(
+        (_, i) => i !== indexToRemove
+      ),
+    }));
+  };
+
+  const handleToggleClosingDay = (day) => {
+    setFormData((prev) => {
+      const current = prev.weeklyClosingDays || [];
+      const exists = current.includes(day);
+      return {
+        ...prev,
+        weeklyClosingDays: exists
+          ? current.filter((d) => d !== day)
+          : [...current, day],
+      };
+    });
+  };
+
+  // Document file selection handler
+  const handleDocFileChange = (docKey, e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const isImg = file.type.startsWith('image/');
+      setDocuments((prev) => ({
+        ...prev,
+        [docKey]: {
+          name: file.name,
+          size: `${(file.size / 1024).toFixed(1)} KB`,
+          type: file.type,
+          uploadedAt: new Date().toISOString(),
+          preview: isImg ? URL.createObjectURL(file) : null,
+        },
+      }));
     }
   };
 
-  // Form Validation
+  // Remove document handler
+  const handleRemoveDoc = (docKey) => {
+    setDocuments((prev) => ({
+      ...prev,
+      [docKey]: null,
+    }));
+  };
+
+  // Auto-fill sample compliance documents for swift testing
+  const handleAutoFillSampleDocs = () => {
+    setDocuments({
+      fssaiCert: {
+        name: `fssai_license_${formData.fssaiNo || '10019011000123'}.pdf`,
+        size: '520 KB',
+        type: 'application/pdf',
+        preview: null,
+        uploadedAt: new Date().toISOString(),
+      },
+      gstCert: {
+        name: `gstin_certificate_${formData.gstNo || '07AAAAA0000A1Z5'}.pdf`,
+        size: '410 KB',
+        type: 'application/pdf',
+        preview: null,
+        uploadedAt: new Date().toISOString(),
+      },
+      panCard: {
+        name: `business_pan_${formData.panNo || 'AAACH7409R'}.pdf`,
+        size: '185 KB',
+        type: 'application/pdf',
+        preview: null,
+        uploadedAt: new Date().toISOString(),
+      },
+      outletFrontImage: {
+        name: 'outlet_front_signage.jpg',
+        size: '240 KB',
+        type: 'image/jpeg',
+        preview:
+          'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80',
+        uploadedAt: new Date().toISOString(),
+      },
+      kitchenAreaImage: {
+        name: 'kitchen_cooking_hygiene.jpg',
+        size: '310 KB',
+        type: 'image/jpeg',
+        preview:
+          'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600&auto=format&fit=crop&q=80',
+        uploadedAt: new Date().toISOString(),
+      },
+      takeawayAreaImage: {
+        name: 'takeaway_delivery_counter.jpg',
+        size: '190 KB',
+        type: 'image/jpeg',
+        preview:
+          'https://images.unsplash.com/photo-1508766917616-d22f3f1eea14?w=600&auto=format&fit=crop&q=80',
+        uploadedAt: new Date().toISOString(),
+      },
+      otherImages: {
+        name: 'cold_storage_rack.jpg',
+        size: '215 KB',
+        type: 'image/jpeg',
+        preview:
+          'https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=600&auto=format&fit=crop&q=80',
+        uploadedAt: new Date().toISOString(),
+      },
+    });
+  };
+
+  // Live FSSAI status helper
+  const fssaiStatus = getFssaiStatus(formData.fssaiNo, formData.fssaiValidUpto);
+
+  // Uploaded docs counter
+  const uploadedDocsCount = Object.values(documents).filter(Boolean).length;
+
+  // Validation
   const validate = () => {
     const errs = {};
 
-    // Basic
-    if (!formData.name.trim()) errs.name = 'Outlet name is required';
-    if (!formData.category.trim()) errs.category = 'Outlet category is required';
-    if (!formData.vendorId) errs.vendorId = 'Please select a vendor business entity';
-    if (!formData.stationCode) errs.stationCode = 'Please select a railway station';
+    // 1. Vendor Info
+    if (!formData.vendorId) errs.vendorId = 'Select an operating vendor partner';
 
-    // Contact
-    if (!formData.contactPerson.trim())
-      errs.contactPerson = 'Contact person name is required';
+    // 2. Basic Details
+    if (!formData.stationCode) errs.stationCode = 'Select a delivery station';
 
-    const phoneDigits = String(formData.phone).replace(/\D/g, '');
-    if (!phoneDigits) {
-      errs.phone = 'Phone number is required';
-    } else if (phoneDigits.length !== 10) {
-      errs.phone = 'Phone number must be a valid 10-digit mobile number';
+    const rawName = formData.name?.trim() || '';
+    if (!rawName) {
+      errs.name = 'Outlet display name is required';
+    } else if (/(\b(off|discount|free delivery|sale|coupon|flat)\b)|%/i.test(rawName)) {
+      errs.name = 'Promotional slogans or discounts are not permitted in outlet name';
     }
 
-    if (!formData.email.trim()) {
-      errs.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errs.email = 'Please enter a valid email address';
+    if (!formData.address?.trim()) {
+      errs.address = 'Kitchen physical address is required';
     }
 
-    if (!formData.address.trim())
-      errs.address = 'Street/Platform address is required';
-    if (!formData.city.trim()) errs.city = 'City is required';
-    if (!formData.state.trim()) errs.state = 'State is required';
-
-    const pinStr = String(formData.pincode).trim();
-    if (!pinStr) {
-      errs.pincode = 'Postal code is required';
-    } else if (!/^\d{6}$/.test(pinStr)) {
-      errs.pincode = 'Postal code must be 6 digits';
+    if (!formData.phone?.trim()) {
+      errs.phone = '10-digit mobile number is required';
+    } else if (!/^\d{10}$/.test(formData.phone.replace(/[\s-]/g, ''))) {
+      errs.phone = 'Enter a valid 10-digit mobile number';
     }
 
-    // Operating
-    if (!formData.openingTime) errs.openingTime = 'Opening time is required';
-    if (!formData.closingTime) errs.closingTime = 'Closing time is required';
-    if (Number(formData.prepTime) <= 0)
-      errs.prepTime = 'Preparation time must be greater than 0';
-    if (Number(formData.minOrderValue) < 0)
-      errs.minOrderValue = 'Minimum order value cannot be negative';
-
-    // Payment Modes
-    if (!formData.paymentModes.cod && !formData.paymentModes.prepaid) {
-      errs.paymentModes =
-        'At least one payment mode (COD or Prepaid) must be enabled';
+    if (!formData.email?.trim()) {
+      errs.email = 'Manager email address is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errs.email = 'Enter a valid email address';
     }
 
-    // Wallet
-    if (Number(formData.wallet.threshold) < 0) {
-      errs.threshold = 'Wallet threshold cannot be negative';
+    // 3. Business Details
+    const rawFssai = formData.fssaiNo?.trim() || '';
+    if (!rawFssai) {
+      errs.fssaiNo = 'FSSAI License is required (14 digits)';
+    } else if (!/^\d{14}$/.test(rawFssai)) {
+      errs.fssaiNo = 'FSSAI License must be exactly 14 digits';
+    }
+
+    if (!formData.fssaiValidUpto) {
+      errs.fssaiValidUpto = 'FSSAI expiry date is required';
+    } else {
+      const expDate = new Date(formData.fssaiValidUpto);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (expDate <= today) {
+        errs.fssaiValidUpto = 'FSSAI license must have a future expiry date';
+      }
+    }
+
+    const rawGst = (formData.gstNo || '').trim();
+    if (!rawGst) {
+      errs.gstNo = 'GSTIN is required (15 characters)';
+    } else if (rawGst.length !== 15) {
+      errs.gstNo = 'GSTIN must be exactly 15 characters';
+    }
+
+    const rawPan = (formData.panNo || '').trim().toUpperCase();
+    if (!rawPan) {
+      errs.panNo = 'Business PAN Number is required (10 characters)';
+    } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(rawPan)) {
+      errs.panNo = 'Enter a valid 10-character PAN (e.g. AAACH7409R)';
+    }
+
+    if (!formData.mealType) {
+      errs.mealType = 'Select dietary classification';
+    }
+
+    // 4. Order Settings
+    if (!formData.startTime) {
+      errs.startTime = 'Opening time is required';
+    }
+    if (!formData.endTime) {
+      errs.endTime = 'Closing time is required';
+    }
+
+    const cutoff = Number(formData.bookingCutoff);
+    if (isNaN(cutoff) || cutoff < 1) {
+      errs.bookingCutoff = 'Enter order preparation time in minutes';
+    }
+
+    const minAmount = Number(formData.minOrderAmount);
+    if (isNaN(minAmount) || minAmount < 0) {
+      errs.minOrderAmount = 'Enter a valid minimum order amount (₹)';
     }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // Form Submission
+  // Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
-      window.scrollTo({ top: 100, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      if (mode === 'edit') {
-        await updateOutlet(initialData.id, formData);
-        navigate(`/outlets/${initialData.id}`);
+      const payload = {
+        id: formData.id.trim().toUpperCase(),
+        name: formData.name.trim(),
+        outletName: formData.name.trim(),
+        stationCode: formData.stationCode.toUpperCase(),
+        vendorId: String(formData.vendorId),
+        vendorName: selectedVendor
+          ? selectedVendor.businessName || selectedVendor.brandName
+          : `Vendor #${formData.vendorId}`,
+        fssaiNo: formData.fssaiNo.trim(),
+        fssaiValidUpto: formData.fssaiValidUpto,
+        fssaiActive: fssaiStatus.isActive,
+        gstNo: formData.gstNo ? formData.gstNo.trim().toUpperCase() : '',
+        gstin: formData.gstNo ? formData.gstNo.trim().toUpperCase() : '',
+        panNo: formData.panNo ? formData.panNo.trim().toUpperCase() : '',
+        panNumber: formData.panNo ? formData.panNo.trim().toUpperCase() : '',
+        address: formData.address.trim(),
+        contact: {
+          name: formData.managerName?.trim() || '',
+          mobile: formData.phone.trim(),
+          email: formData.email.trim(),
+        },
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        bookingCutoff: Number(formData.bookingCutoff || 30),
+        baseCutoffTime: Number(formData.bookingCutoff || 30),
+        prepTime: Number(formData.bookingCutoff || 30),
+        preparationTime: Number(formData.bookingCutoff || 30),
+        mealType: formData.mealType,
+        distanceInMeters: Number(formData.distanceInMeters || 250),
+        minOrderAmount: Number(formData.minOrderAmount ?? 0),
+        prepaid: Boolean(formData.prepaid),
+        paymentMode: formData.prepaid ? 'PREPAID ONLY' : 'COD & PREPAID',
+        deliveryFeeLimits: formData.deliveryFeeLimits || [],
+        weeklyClosingDays: formData.weeklyClosingDays || [],
+        schedules: [
+          {
+            startTime: formData.startTime || '08:00',
+            endTime: formData.endTime || '22:00',
+          },
+        ],
+        startTime: formData.startTime || '08:00',
+        endTime: formData.endTime || '22:00',
+        status: formData.status || 'Active',
+        approvalStatus:
+          formData.status === 'Active'
+            ? 'APPROVED'
+            : formData.status === 'Pending'
+            ? 'APPROVAL_PENDING'
+            : formData.status === 'Inactive'
+            ? 'DEACTIVATED'
+            : 'APPROVED',
+        listed: formData.status === 'Active' && formData.listed !== false,
+        archived: formData.status === 'Archived',
+        documents,
+        documentsUploaded: Object.values(documents).some(Boolean),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (mode === 'create') {
+        payload.createdAt = new Date().toISOString();
+        const created = await createOutlet(payload);
+        navigate(`/outlets/${created?.id || payload.id}`);
       } else {
-        await createOutlet(formData);
-        navigate(`/outlets/station/${formData.stationCode}`);
+        await updateOutlet(formData.id, payload);
+        navigate(`/outlets/${formData.id}`);
       }
-    } catch {
+    } catch (err) {
+      console.error('Failed to save outlet:', err);
+    } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCancel = () => {
-    if (mode === 'edit') {
-      navigate(`/outlets/${initialData.id}`);
-    } else if (defaultStationCode) {
-      navigate(`/outlets/station/${defaultStationCode}`);
-    } else {
-      navigate('/outlets');
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full">
-      {/* 1. Basic Information & Vendor Assignment */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6">
-        <div className="flex items-center gap-2.5 pb-4 mb-5 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-            <Store className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900">
-              Basic Information & Vendor Assignment
-            </h2>
-            <p className="text-xs text-slate-500">
-              Outlet identity, primary category, associated business vendor, and railway station
-            </p>
-          </div>
-        </div>
+    <form onSubmit={handleSubmit} className="w-full space-y-6 pb-12">
+      {/* 2-Column Balanced Form Grid for Sections 1 to 4 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* COLUMN 1: VENDOR INFO + BASIC DETAILS */}
+        <div className="space-y-6">
+          {/* SECTION 1: VENDOR INFO */}
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Vendor Info</h2>
+                  <p className="text-[11px] text-slate-400">
+                    Operating vendor partner managing this outlet
+                  </p>
+                </div>
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-          {/* Outlet Name */}
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-slate-700">
-              Outlet Name <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="e.g. Havmor Express Kitchen"
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all ${
-                errors.name ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.name && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.name}
-              </p>
-            )}
-          </div>
+              <Link
+                to="/outlets/vendors/new"
+                className="text-xs text-blue-600 hover:text-blue-700 font-semibold inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100/70 px-2.5 py-1 rounded-md transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Vendor</span>
+              </Link>
+            </div>
 
-          {/* Vendor Assignment Dropdown */}
-          <div className="space-y-1.5 md:col-span-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Associated Business Vendor</span>
-                <span className="text-rose-500">*</span>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Operating Vendor Partner <span className="text-rose-500">*</span>
               </label>
-              {formData.vendorId && (
-                <a
-                  href={`/outlets/vendors/${formData.vendorId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] text-emerald-700 hover:underline inline-flex items-center gap-1 font-medium"
+              {vendors.length === 0 ? (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                  No registered vendors found. Please add a vendor first.
+                </div>
+              ) : (
+                <select
+                  name="vendorId"
+                  value={formData.vendorId}
+                  onChange={handleChange}
+                  className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-800 transition cursor-pointer"
                 >
-                  <span>Open Vendor Profile</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
+                  {vendors.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      Vendor #{v.id} — {v.businessName || v.brandName} {v.city ? `(${v.city})` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {errors.vendorId && (
+                <p className="text-xs text-rose-600 mt-1">{errors.vendorId}</p>
               )}
             </div>
-            <select
-              name="vendorId"
-              value={formData.vendorId}
-              onChange={handleChange}
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all cursor-pointer font-medium ${
-                errors.vendorId
-                  ? 'border-rose-400 bg-rose-50/30'
-                  : 'border-slate-200'
-              }`}
-            >
-              <option value="">-- Select Registered Vendor Business Entity --</option>
-              {vendors.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.businessName} ({v.id}) - {v.city}, {v.state} [{v.status}]
-                </option>
-              ))}
-            </select>
-            {errors.vendorId && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.vendorId}
-              </p>
-            )}
-            <p className="text-[11px] text-slate-400">
-              Each outlet must belong to exactly one registered vendor entity. Orders & earnings roll up to this vendor.
-            </p>
-          </div>
 
-          {/* Outlet ID */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Outlet ID
-              <span className="text-slate-400 font-normal ml-1">
-                {mode === 'edit' ? '(Fixed)' : '(Auto-generated if empty)'}
-              </span>
-            </label>
-            <input
-              type="text"
-              name="id"
-              disabled={mode === 'edit'}
-              value={formData.id}
-              onChange={handleChange}
-              placeholder={`e.g. OLF-${formData.stationCode}-005`}
-              className="w-full px-3.5 py-2 text-sm font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all disabled:opacity-60"
-            />
-          </div>
+            {/* Selected Vendor Quick Info Preview */}
+            {selectedVendor && (
+              <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    {selectedVendor.businessName || selectedVendor.brandName}
+                  </span>
+                  <span className="font-mono text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    ID: {selectedVendor.id}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
+                  <div>
+                    <span className="text-slate-400">Contact:</span>{' '}
+                    <span className="font-medium text-slate-700">
+                      {selectedVendor.contactPerson || selectedVendor.contact?.name || 'Manager'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Phone:</span>{' '}
+                    <span className="font-medium text-slate-700">
+                      {selectedVendor.phone || selectedVendor.contact?.mobile || '—'}
+                    </span>
+                  </div>
+                </div>
 
-          {/* Category */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Outlet Category <span className="text-rose-500">*</span>
-            </label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all cursor-pointer ${
-                errors.category
-                  ? 'border-rose-400 bg-rose-50/30'
-                  : 'border-slate-200'
-              }`}
-            >
-              <option value="Multi-Cuisine & Fast Food">Multi-Cuisine & Fast Food</option>
-              <option value="Pure Veg & Regional">Pure Veg & Regional</option>
-              <option value="North Indian & Mughlai">North Indian & Mughlai</option>
-              <option value="South Indian">South Indian</option>
-              <option value="Bakery & Beverages">Bakery & Beverages</option>
-              <option value="Breakfast & Snacks">Breakfast & Snacks</option>
-              <option value="Biryani & Kebabs">Biryani & Kebabs</option>
-            </select>
-            {errors.category && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.category}
-              </p>
-            )}
-          </div>
+                <div className="flex flex-wrap items-center gap-3 pt-0.5">
+                  {selectedVendor.gstin && !formData.gstNo && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => {
+                          const next = { ...prev, gstNo: selectedVendor.gstin };
+                          if (!prev.panNo) {
+                            next.panNo =
+                              selectedVendor.panNumber || selectedVendor.gstin.slice(2, 12);
+                          }
+                          return next;
+                        })
+                      }
+                      className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-500" />
+                      <span>Auto-fill GSTIN ({selectedVendor.gstin})</span>
+                    </button>
+                  )}
 
-          {/* Station Selection */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Railway Station <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={formData.stationCode}
-              onChange={(e) => handleStationChange(e.target.value)}
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all cursor-pointer font-medium"
-            >
-              {stations.map((s) => (
-                <option key={s.code} value={s.code}>
-                  {s.name} ({s.code}) - {s.state}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Station Code Badge preview */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">Station Code</label>
-            <div className="px-3.5 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-700 font-mono font-semibold flex items-center justify-between">
-              <span>{formData.stationCode}</span>
-              <span className="text-xs font-sans text-slate-500">{formData.stationName}</span>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-slate-700">Description</label>
-            <textarea
-              name="description"
-              rows={2}
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Brief description of meals, specialty dishes, or kitchen certifications..."
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Contact Information */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6">
-        <div className="flex items-center gap-2.5 pb-4 mb-5 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-            <MapPin className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Contact & Location</h2>
-            <p className="text-xs text-slate-500">
-              Manager credentials and physical platform address
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-          {/* Contact Person */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Contact Person <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="contactPerson"
-              value={formData.contactPerson}
-              onChange={handleChange}
-              placeholder="e.g. Rajesh Mehta"
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all ${
-                errors.contactPerson ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.contactPerson && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.contactPerson}
-              </p>
-            )}
-          </div>
-
-          {/* Phone */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Phone Number (10 digits) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="9825123456"
-              maxLength={10}
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-mono ${
-                errors.phone ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.phone && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.phone}
-              </p>
-            )}
-          </div>
-
-          {/* Email */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Email Address <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="outlet@olfstores.in"
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all ${
-                errors.email ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.email && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Address */}
-          <div className="space-y-1.5 md:col-span-3">
-            <label className="text-xs font-semibold text-slate-700">
-              Platform Address / Shop Location <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              placeholder="e.g. Platform 1, Near Escalator Exit, Vadodara Junction"
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all ${
-                errors.address ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.address && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.address}
-              </p>
-            )}
-          </div>
-
-          {/* City */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              City <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              placeholder="e.g. Vadodara"
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all ${
-                errors.city ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.city && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.city}
-              </p>
-            )}
-          </div>
-
-          {/* State */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              State <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="state"
-              value={formData.state}
-              onChange={handleChange}
-              placeholder="e.g. Gujarat"
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all ${
-                errors.state ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.state && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.state}
-              </p>
-            )}
-          </div>
-
-          {/* Postal Code */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Postal Code (PIN) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="pincode"
-              value={formData.pincode}
-              onChange={handleChange}
-              maxLength={6}
-              placeholder="390002"
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-mono ${
-                errors.pincode ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.pincode && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.pincode}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Operating Information */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6">
-        <div className="flex items-center gap-2.5 pb-4 mb-5 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-            <Clock className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Operating Information</h2>
-            <p className="text-xs text-slate-500">
-              Kitchen operating schedule, lead times, and active status
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {/* Opening Time */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Opening Time <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="time"
-              name="openingTime"
-              value={formData.openingTime}
-              onChange={handleChange}
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-mono"
-            />
-          </div>
-
-          {/* Closing Time */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Closing Time <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="time"
-              name="closingTime"
-              value={formData.closingTime}
-              onChange={handleChange}
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-mono"
-            />
-          </div>
-
-          {/* Prep Time */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Prep Time (mins) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="number"
-              name="prepTime"
-              min="5"
-              max="120"
-              value={formData.prepTime}
-              onChange={handleChange}
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-mono ${
-                errors.prepTime ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.prepTime && (
-              <p className="text-xs text-rose-600 mt-1">{errors.prepTime}</p>
-            )}
-          </div>
-
-          {/* Minimum Order */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Min Order (₹) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="number"
-              name="minOrderValue"
-              min="0"
-              step="10"
-              value={formData.minOrderValue}
-              onChange={handleChange}
-              className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-mono ${
-                errors.minOrderValue ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
-              }`}
-            />
-            {errors.minOrderValue && (
-              <p className="text-xs text-rose-600 mt-1">{errors.minOrderValue}</p>
-            )}
-          </div>
-
-          {/* Outlet Status */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Outlet Status <span className="text-rose-500">*</span>
-            </label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium cursor-pointer"
-            >
-              <option value="Active">Active (Accepting)</option>
-              <option value="Pending">Pending Review</option>
-              <option value="Inactive">Inactive (Paused)</option>
-              <option value="Closed">Closed</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Payment & Wallet Configuration */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Payment Configuration */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6">
-          <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
-              <CreditCard className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Payment Modes</h2>
-              <p className="text-xs text-slate-500">
-                Customer checkout methods supported by this outlet
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.paymentModes.cod}
-                onChange={() => handlePaymentToggle('cod')}
-                className="mt-0.5 h-4 w-4 rounded text-slate-900 focus:ring-slate-900 border-slate-300 cursor-pointer"
-              />
-              <div className="text-xs">
-                <span className="font-semibold text-slate-800 block">
-                  Cash on Delivery (COD)
-                </span>
-                <span className="text-slate-500">
-                  Passenger pays the outlet delivery executive on coach arrival.
-                </span>
+                  {selectedVendor.panNumber && !formData.panNo && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          panNo: selectedVendor.panNumber,
+                        }))
+                      }
+                      className="inline-flex items-center gap-1 text-[11px] text-emerald-600 hover:text-emerald-700 font-semibold cursor-pointer"
+                    >
+                      <Sparkles className="w-3 h-3 text-emerald-500" />
+                      <span>Auto-fill PAN ({selectedVendor.panNumber})</span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </label>
-
-            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.paymentModes.prepaid}
-                onChange={() => handlePaymentToggle('prepaid')}
-                className="mt-0.5 h-4 w-4 rounded text-slate-900 focus:ring-slate-900 border-slate-300 cursor-pointer"
-              />
-              <div className="text-xs">
-                <span className="font-semibold text-slate-800 block">
-                  Prepaid / Online Payments
-                </span>
-                <span className="text-slate-500">
-                  Accept UPI, Cards, and Netbanking via IRCTC / OLF gateway.
-                </span>
-              </div>
-            </label>
-
-            {errors.paymentModes && (
-              <p className="text-xs text-rose-600 flex items-center gap-1 mt-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {errors.paymentModes}
-              </p>
             )}
           </div>
-        </div>
 
-        {/* Wallet Configuration */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6">
-          <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <Wallet className="w-4 h-4" />
+          {/* SECTION 2: BASIC DETAILS */}
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <Store className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Basic Details</h2>
+                <p className="text-[11px] text-slate-400">
+                  Station location, outlet identity and kitchen contact
+                </p>
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Delivery Station */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Delivery Station <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  name="stationCode"
+                  value={formData.stationCode}
+                  onChange={handleChange}
+                  disabled={mode === 'edit'}
+                  className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-500 font-medium transition cursor-pointer"
+                >
+                  {stations.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {s.code} — {s.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.stationCode && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.stationCode}</p>
+                )}
+              </div>
+
+              {/* Outlet Identifier */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Outlet Code (Auto-Generated)
+                </label>
+                <div className="flex items-center px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-sm font-bold text-slate-700">
+                  <Hash className="w-3.5 h-3.5 text-slate-400 mr-1.5" />
+                  <span>{formData.id || 'AUTO_ID'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Outlet Display Name */}
             <div>
-              <h2 className="text-base font-bold text-slate-900">Wallet Configuration</h2>
-              <p className="text-xs text-slate-500">
-                Operating balance and safety threshold in Indian Rupees
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">
-                Current Wallet Balance (₹)
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Outlet Display Name (Passenger-Facing) <span className="text-rose-500">*</span>
               </label>
               <input
-                type="number"
-                min="0"
-                step="500"
-                value={formData.wallet.balance}
-                onChange={(e) => handleWalletChange('balance', e.target.value)}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-mono"
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="e.g. Comesum Food Plaza, Sagar Ratna, Haldiram's"
+                className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium text-slate-900 transition"
               />
+              {errors.name && <p className="text-xs text-rose-600 mt-1">{errors.name}</p>}
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">
-                Wallet Threshold (₹) <span className="text-rose-500">*</span>
+            {/* Kitchen Physical Address */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Kitchen Physical Address <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="number"
-                min="0"
-                step="500"
-                value={formData.wallet.threshold}
-                onChange={(e) => handleWalletChange('threshold', e.target.value)}
-                className={`w-full px-3.5 py-2 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-mono ${
-                  errors.threshold ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'
+              <div className="relative">
+                <textarea
+                  rows="2"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="Platform / Concourse / Street address, City, State, Pincode"
+                  className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium transition resize-none"
+                />
+              </div>
+              {errors.address && (
+                <p className="text-xs text-rose-600 mt-1">{errors.address}</p>
+              )}
+            </div>
+
+            {/* Manager Contact Sub-group */}
+            <div className="pt-3 border-t border-slate-100">
+              <label className="block text-xs font-semibold text-slate-700 mb-2">
+                Operations Manager Contact <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* Manager Name */}
+                <div className="relative">
+                  <User className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    name="managerName"
+                    value={formData.managerName}
+                    onChange={handleChange}
+                    placeholder="Manager Name"
+                    className="w-full pl-8 pr-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium transition"
+                  />
+                </div>
+
+                {/* Mobile Number */}
+                <div className="relative">
+                  <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const num = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData((prev) => ({ ...prev, phone: num }));
+                      if (errors.phone) setErrors((prev) => ({ ...prev, phone: null }));
+                    }}
+                    placeholder="10-Digit Mobile"
+                    maxLength={10}
+                    className="w-full pl-8 pr-3 py-2 text-sm font-mono bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-semibold transition"
+                  />
+                </div>
+
+                {/* Email Address */}
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Manager Email"
+                    className="w-full pl-8 pr-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium transition"
+                  />
+                </div>
+              </div>
+
+              {(errors.phone || errors.email) && (
+                <div className="flex flex-wrap gap-4 mt-1.5">
+                  {errors.phone && <p className="text-xs text-rose-600">{errors.phone}</p>}
+                  {errors.email && <p className="text-xs text-rose-600">{errors.email}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* COLUMN 2: BUSINESS DETAILS + ORDER SETTINGS */}
+        <div className="space-y-6">
+          {/* SECTION 3: BUSINESS DETAILS */}
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Business Details</h2>
+                  <p className="text-[11px] text-slate-400">
+                    FSSAI food license, GST &amp; PAN registration, and dietary type
+                  </p>
+                </div>
+              </div>
+
+              {/* FSSAI Status Pill */}
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                  fssaiStatus.status === 'ACTIVE'
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : fssaiStatus.status === 'EXPIRING_SOON'
+                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                    : 'bg-rose-50 text-rose-700 border border-rose-200'
                 }`}
-              />
-              {errors.threshold && (
-                <p className="text-xs text-rose-600 mt-1">{errors.threshold}</p>
+              >
+                {fssaiStatus.isActive ? (
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                ) : (
+                  <XCircle className="w-3 h-3 text-rose-600" />
+                )}
+                <span>FSSAI: {fssaiStatus.label}</span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* FSSAI License Number */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    FSSAI License (14 Digits) <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {formData.fssaiNo.length}/14
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  name="fssaiNo"
+                  value={formData.fssaiNo}
+                  onChange={(e) => {
+                    const num = e.target.value.replace(/\D/g, '').slice(0, 14);
+                    setFormData((prev) => ({ ...prev, fssaiNo: num }));
+                    if (errors.fssaiNo) setErrors((prev) => ({ ...prev, fssaiNo: null }));
+                  }}
+                  placeholder="e.g. 10019011000123"
+                  maxLength={14}
+                  className="w-full px-3 py-2 text-sm font-mono tracking-wider bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-semibold transition"
+                />
+                {errors.fssaiNo && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.fssaiNo}</p>
+                )}
+              </div>
+
+              {/* FSSAI Expiry Date */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    FSSAI Expiry Date <span className="text-rose-500">*</span>
+                  </label>
+                  {fssaiStatus.daysRemaining !== null && (
+                    <span
+                      className={`text-[10px] font-medium ${
+                        fssaiStatus.daysRemaining > 30 ? 'text-emerald-700' : 'text-amber-700'
+                      }`}
+                    >
+                      {fssaiStatus.daysRemaining >= 0
+                        ? `${fssaiStatus.daysRemaining}d left`
+                        : 'Expired'}
+                    </span>
+                  )}
+                </div>
+                <input
+                  type="date"
+                  name="fssaiValidUpto"
+                  value={formData.fssaiValidUpto}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium transition cursor-pointer"
+                />
+                {errors.fssaiValidUpto && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.fssaiValidUpto}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Commercial GSTIN & Business PAN (2 Columns) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Commercial GSTIN */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Commercial GSTIN (15 Chars) <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {formData.gstNo.length}/15
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  name="gstNo"
+                  value={formData.gstNo}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.toUpperCase().slice(0, 15);
+                    setFormData((prev) => {
+                      const next = { ...prev, gstNo: cleaned };
+                      // If PAN is empty and GSTIN has at least 12 chars (chars 3 to 12)
+                      if (!prev.panNo && cleaned.length >= 12) {
+                        const panPart = cleaned.slice(2, 12);
+                        if (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panPart)) {
+                          next.panNo = panPart;
+                        }
+                      }
+                      return next;
+                    });
+                    if (errors.gstNo) setErrors((prev) => ({ ...prev, gstNo: null }));
+                  }}
+                  placeholder="e.g. 07AAAAA0000A1Z5"
+                  maxLength={15}
+                  className="w-full px-3.5 py-2 text-sm font-mono tracking-wider bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-semibold uppercase transition"
+                />
+                {errors.gstNo && <p className="text-xs text-rose-600 mt-1">{errors.gstNo}</p>}
+              </div>
+
+              {/* Business PAN Number */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Business PAN Number (10 Chars) <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {formData.panNo.length}/10
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  name="panNo"
+                  value={formData.panNo}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.toUpperCase().slice(0, 10);
+                    setFormData((prev) => ({ ...prev, panNo: cleaned }));
+                    if (errors.panNo) setErrors((prev) => ({ ...prev, panNo: null }));
+                  }}
+                  placeholder="e.g. AAACH7409R"
+                  maxLength={10}
+                  className="w-full px-3.5 py-2 text-sm font-mono tracking-wider bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-semibold uppercase transition"
+                />
+                {errors.panNo && <p className="text-xs text-rose-600 mt-1">{errors.panNo}</p>}
+              </div>
+            </div>
+
+            {/* Dietary Classification (Meal Type) */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Dietary Classification <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, mealType: 'PURE_VEG' }))}
+                  className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+                    formData.mealType === 'PURE_VEG'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-1 ring-emerald-300'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <Leaf className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>100% Pure Veg</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, mealType: 'NON_VEG' }))}
+                  className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+                    formData.mealType === 'NON_VEG'
+                      ? 'bg-slate-100 text-slate-900 border-slate-300 ring-1 ring-slate-300'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <UtensilsCrossed className="w-3.5 h-3.5 text-slate-700" />
+                  <span>Veg & Non-Veg</span>
+                </button>
+              </div>
+              {errors.mealType && (
+                <p className="text-xs text-rose-600 mt-1">{errors.mealType}</p>
               )}
             </div>
           </div>
 
-          <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-500 leading-relaxed">
-            When balance falls below the threshold, the outlet is flagged with a Low Balance
-            warning in admin reports and notified for top-up.
+          {/* SECTION 4: ORDER SETTINGS */}
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Order Settings</h2>
+                <p className="text-[11px] text-slate-400">
+                  Operating timings, preparation lead time, minimum order, delivery limits and payment
+                </p>
+              </div>
+            </div>
+
+            {/* Row 1: Opening Time & Closing Time */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Opening Time<span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="time"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-mono transition"
+                  />
+                </div>
+                {errors.startTime && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.startTime}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Closing Time<span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="time"
+                    name="endTime"
+                    value={formData.endTime}
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-mono transition"
+                  />
+                </div>
+                {errors.endTime && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.endTime}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Row 2: Order Preparation Time & Minimum Order Amount */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Order Preparation Time (minutes)<span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="bookingCutoff"
+                  value={formData.bookingCutoff}
+                  onChange={handleChange}
+                  min={1}
+                  max={120}
+                  placeholder="30"
+                  className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition"
+                />
+                {errors.bookingCutoff && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.bookingCutoff}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Minimum Order Amount (₹)<span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="minOrderAmount"
+                  value={formData.minOrderAmount}
+                  onChange={handleChange}
+                  min={0}
+                  placeholder="0"
+                  className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition"
+                />
+                {errors.minOrderAmount && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.minOrderAmount}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Row 3: Delivery Fee Limits & Accept Prepaid Orders */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Delivery Fee Limits Box */}
+              <div className="rounded-xl border border-slate-200 p-4 bg-white flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-800 mb-2.5">
+                    Delivery Fee Limits
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      placeholder="Amoun"
+                      value={deliveryInput.amount}
+                      onChange={(e) =>
+                        setDeliveryInput((prev) => ({ ...prev, amount: e.target.value }))
+                      }
+                      className="flex-1 min-w-0 px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Fee"
+                      value={deliveryInput.fee}
+                      onChange={(e) =>
+                        setDeliveryInput((prev) => ({ ...prev, fee: e.target.value }))
+                      }
+                      className="flex-1 min-w-0 px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddDeliveryFeeLimit}
+                      className="w-9 h-9 shrink-0 flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-base transition shadow-2xs cursor-pointer"
+                      title="Add delivery fee limit"
+                    >
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  </div>
+                </div>
+
+                {formData.deliveryFeeLimits && formData.deliveryFeeLimits.length > 0 && (
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap gap-1.5">
+                    {formData.deliveryFeeLimits.map((limit, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200"
+                      >
+                        <span>₹{limit.amount} → ₹{limit.fee} Fee</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDeliveryFeeLimit(idx)}
+                          className="text-purple-400 hover:text-purple-700 font-bold ml-0.5 cursor-pointer"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Accepted Payment Mode Box */}
+              <div className="rounded-xl border border-slate-200 p-4 bg-white flex flex-col justify-between">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-2.5">
+                    Accepted Payment Mode <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          prepaid: false,
+                          paymentMode: 'COD & PREPAID',
+                        }))
+                      }
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+                        !formData.prepaid
+                          ? 'bg-blue-50 text-blue-900 border-blue-300 ring-1 ring-blue-300 shadow-2xs font-bold'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Banknote className={`w-3.5 h-3.5 ${!formData.prepaid ? 'text-blue-700' : 'text-slate-500'}`} />
+                      <span>COD &amp; Prepaid</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          prepaid: true,
+                          paymentMode: 'PREPAID ONLY',
+                        }))
+                      }
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+                        formData.prepaid
+                          ? 'bg-blue-50 text-blue-900 border-blue-300 ring-1 ring-blue-300 shadow-2xs font-bold'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <CreditCard className={`w-3.5 h-3.5 ${formData.prepaid ? 'text-blue-700' : 'text-slate-500'}`} />
+                      <span>Prepaid Only</span>
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-400 mt-2">
+                  {!formData.prepaid
+                    ? 'Customers can pay cash upon delivery or pay online'
+                    : 'Customers must pay online at the time of placing order'}
+                </p>
+              </div>
+            </div>
+
+            {/* Row 4: Weekly Closing Days */}
+            <div className="rounded-xl border border-slate-200 p-4 bg-white">
+              <h3 className="text-xs font-bold text-slate-800">
+                Weekly Closing Days
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5 mb-3">
+                Select days when the outlet is closed
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {[
+                  'Sunday',
+                  'Monday',
+                  'Tuesday',
+                  'Wednesday',
+                  'Thursday',
+                  'Friday',
+                  'Saturday',
+                ].map((day) => {
+                  const isChecked = (formData.weeklyClosingDays || []).includes(day);
+                  return (
+                    <label
+                      key={day}
+                      className="inline-flex items-center gap-2 cursor-pointer select-none text-xs text-slate-700 hover:text-slate-900"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleToggleClosingDay(day)}
+                        className="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      />
+                      <span>{day}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 5. Section F: Integration Information */}
-      <div className="bg-slate-900 text-white rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
-            <ShieldCheck className="w-6 h-6" />
+      {/* SECTION 5: COMPLIANCE DOCUMENTS & KITCHEN PHOTOS */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <FileCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-slate-900">
+                  Compliance Documents &amp; Facility Photos
+                </h2>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                  {uploadedDocsCount}/7 Uploaded
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Statutory FSSAI &amp; GST certificates, PAN card, and commercial kitchen photos
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 className="text-sm font-bold">IRCTC Integration Notice</h4>
-            <p className="text-xs text-slate-300 mt-0.5">
-              IRCTC integration will be connected in a future backend phase. Partner credentials and push sync hooks are reserved.
-            </p>
-          </div>
+
+          <button
+            type="button"
+            onClick={handleAutoFillSampleDocs}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition shrink-0 cursor-pointer self-start sm:self-auto"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Auto-Fill Sample Docs</span>
+          </button>
         </div>
-        <span className="text-xs font-semibold px-2.5 py-1 bg-slate-800 text-slate-300 rounded border border-slate-700 shrink-0">
-          Not Connected
-        </span>
+
+        {/* 7 Documents Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {COMPLIANCE_DOCS_CONFIG.map((doc) => {
+            const IconComp = doc.icon;
+            const docState = documents[doc.key];
+            const isUploaded = Boolean(docState);
+
+            return (
+              <div
+                key={doc.key}
+                className={`rounded-xl border p-4 transition-all shadow-2xs flex flex-col justify-between ${
+                  isUploaded
+                    ? 'border-emerald-300 bg-emerald-50/15'
+                    : 'border-slate-200/80 bg-slate-50/40 hover:border-slate-300'
+                }`}
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          isUploaded
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-white border border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        <IconComp className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-slate-900 leading-tight truncate">
+                          {doc.title}
+                        </h4>
+                        <p className="text-[10px] text-slate-400 mt-0.5 truncate">{doc.category}</p>
+                      </div>
+                    </div>
+
+                    {isUploaded ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full shrink-0">
+                        Uploaded ✓
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-medium text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
+                        Pending
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Thumbnail if image preview available */}
+                  {docState?.preview && (
+                    <div className="mt-3 relative rounded-lg overflow-hidden border border-slate-200 h-24 bg-slate-100 group">
+                      <img
+                        src={docState.preview}
+                        alt={doc.title}
+                        className="w-full h-full object-cover transition duration-200 group-hover:scale-105"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDoc(doc.key)}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-slate-900/70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer hover:bg-rose-600"
+                        title="Remove Document"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Non-image document pill */}
+                  {isUploaded && !docState?.preview && (
+                    <div className="mt-3 flex items-center justify-between p-2 rounded-lg bg-white border border-emerald-200 text-[11px] font-mono text-slate-700">
+                      <span className="truncate pr-2 font-medium">{docState.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDoc(doc.key)}
+                        className="text-slate-400 hover:text-rose-600 shrink-0 cursor-pointer p-0.5"
+                        title="Remove Document"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload Button */}
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60">
+                  <label className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition cursor-pointer shadow-2xs">
+                    <Upload className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{isUploaded ? 'Replace File' : 'Upload File'}</span>
+                    <input
+                      type="file"
+                      accept={doc.accept}
+                      onChange={(e) => handleDocFileChange(doc.key, e)}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Form Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-        <Button
+      {/* Bottom Action Bar */}
+      <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+        <button
           type="button"
-          variant="secondary"
-          size="md"
-          onClick={handleCancel}
-          disabled={isSubmitting}
+          onClick={() => navigate('/outlets')}
+          className="px-5 py-2.5 text-sm font-medium rounded-lg text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition cursor-pointer"
         >
           Cancel
-        </Button>
+        </button>
 
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          size="md"
-          leftIcon={Save}
-          loading={isSubmitting}
+          disabled={isSubmitting}
+          className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-xs transition disabled:opacity-50 cursor-pointer"
         >
-          {mode === 'edit' ? 'Update Outlet' : 'Save Outlet'}
-        </Button>
+          <Check className="w-4 h-4" />
+          <span>
+            {isSubmitting
+              ? 'Saving Outlet...'
+              : mode === 'create'
+              ? 'Add Outlet'
+              : 'Save Changes'}
+          </span>
+        </button>
       </div>
     </form>
   );

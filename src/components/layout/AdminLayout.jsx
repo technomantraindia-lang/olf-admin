@@ -22,8 +22,11 @@ export default function AdminLayout() {
   } = useOutlets();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
-      <div className="flex flex-1 overflow-hidden">
+    <div className="h-screen bg-slate-50 flex flex-col antialiased overflow-hidden">
+      {/* Top Header - Spans full width across viewport */}
+      <Header setIsMobileOpen={setIsMobileOpen} />
+
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Responsive Sidebar */}
         <Sidebar
           isMobileOpen={isMobileOpen}
@@ -34,16 +37,13 @@ export default function AdminLayout() {
 
         {/* Content Wrapper */}
         <div className="flex flex-col flex-1 min-w-0 overflow-y-auto">
-          {/* Header */}
-          <Header setIsMobileOpen={setIsMobileOpen} />
-
           {/* Main Workspace View - Full width fluid layout */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full">
             <Outlet />
           </main>
 
           {/* Footer note */}
-          <footer className="px-6 py-4 border-t border-slate-200 text-center text-xs text-slate-500 bg-white">
+          <footer className="px-6 py-4 border-t border-slate-200 text-center text-xs text-slate-500 bg-white shrink-0">
             <p>
               &copy; {CURRENT_YEAR} OLF Stores • Railway Meal-Delivery Platform
               (IRCTC Partner Network) • Frontend Outlets Module

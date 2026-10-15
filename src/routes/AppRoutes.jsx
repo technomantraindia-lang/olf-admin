@@ -34,6 +34,7 @@ export default function AppRoutes() {
         <Route path="outlets/inactive" element={<AllOutlets presetFilter="inactive" />} />
         <Route path="outlets/closed" element={<AllOutlets presetFilter="closed" />} />
         <Route path="outlets/archived" element={<AllOutlets presetFilter="archived" />} />
+        <Route path="outlets/deleted" element={<AllOutlets presetFilter="archived" />} />
         <Route path="outlets/filter/:filterType" element={<AllOutlets />} />
 
         {/* 3. Vendor Routes (MUST BE BEFORE outlets/:outletId TO PREVENT CONFLICTS) */}
@@ -43,6 +44,7 @@ export default function AppRoutes() {
         <Route path="outlets/vendors/:vendorId" element={<VendorDetails />} />
 
         {/* 4. Station & Outlet Detail Routes */}
+        <Route path="outlets/new" element={<AddOutlet />} />
         <Route path="outlets/station/:stationCode" element={<StationOutlets />} />
         <Route path="outlets/:stationCode/new" element={<AddOutlet />} />
         <Route path="outlets/:outletId/edit" element={<EditOutlet />} />

@@ -102,14 +102,23 @@ export function exportVendorsToCsv(vendors, filename = 'olf-vendors-export.csv',
 
   const headers = [
     'Vendor ID',
-    'Business Name',
+    'Brand Name',
+    'Legal Name',
+    'PAN Number',
+    'GSTIN',
     'Category',
     'Contact Person',
     'Phone',
     'Email',
+    'Address',
     'City',
     'State',
     'Pincode',
+    'Bank Name',
+    'Bank Account',
+    'IFSC Code',
+    'Commission Rate (%)',
+    'Payout Cycle',
     'Status',
     'Registration Date',
     'Total Outlets',
@@ -128,20 +137,29 @@ export function exportVendorsToCsv(vendors, filename = 'olf-vendors-export.csv',
 
   const rows = vendors.map((vendor) => {
     const associatedOutlets = (outlets || []).filter(
-      (o) => o.vendorId && o.vendorId.toUpperCase() === vendor.id.toUpperCase()
+      (o) => o && o.vendorId && String(o.vendorId).toUpperCase() === String(vendor.id).toUpperCase()
     );
     const stationCodes = Array.from(new Set(associatedOutlets.map((o) => o.stationCode))).join('; ');
 
     return [
       escapeCsvCell(vendor.id),
-      escapeCsvCell(vendor.businessName),
+      escapeCsvCell(vendor.brandName || vendor.businessName),
+      escapeCsvCell(vendor.legalName || vendor.businessName),
+      escapeCsvCell(vendor.panNumber || ''),
+      escapeCsvCell(vendor.gstin || ''),
       escapeCsvCell(vendor.category),
       escapeCsvCell(vendor.contactPerson),
       escapeCsvCell(vendor.phone),
       escapeCsvCell(vendor.email),
+      escapeCsvCell(vendor.address || ''),
       escapeCsvCell(vendor.city),
       escapeCsvCell(vendor.state),
       escapeCsvCell(vendor.pincode),
+      escapeCsvCell(vendor.bankName || ''),
+      escapeCsvCell(vendor.bankAccountNumber || ''),
+      escapeCsvCell(vendor.bankIfsc || ''),
+      escapeCsvCell(vendor.commissionRate ?? 15),
+      escapeCsvCell(vendor.payoutCycle || 'Weekly Payment'),
       escapeCsvCell(vendor.status),
       escapeCsvCell(vendor.registrationDate),
       escapeCsvCell(associatedOutlets.length),

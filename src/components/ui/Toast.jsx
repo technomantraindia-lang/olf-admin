@@ -14,6 +14,10 @@ export default function Toast({ toast, onClose, autoCloseMs = 4500 }) {
   if (!toast) return null;
 
   const { message, type = 'success' } = toast;
+  const displayMessage =
+    typeof message === 'object' && message !== null
+      ? message.message || message.title || JSON.stringify(message)
+      : String(message || '');
 
   const icons = {
     success: <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />,
@@ -36,7 +40,7 @@ export default function Toast({ toast, onClose, autoCloseMs = 4500 }) {
         )}
       >
         {icons[type] || icons.info}
-        <p className="text-sm font-medium pr-2 text-slate-800">{message}</p>
+        <p className="text-sm font-medium pr-2 text-slate-800">{displayMessage}</p>
         <button
           onClick={onClose}
           className="ml-auto text-slate-400 hover:text-slate-600 rounded-md p-1 hover:bg-slate-100 transition-colors cursor-pointer"

@@ -80,14 +80,18 @@ export function OutletProvider({ children }) {
 
   // Update outlet
   const updateOutlet = useCallback(
-    async (id, outletData) => {
+    async (id, outletData, silent = false) => {
       try {
         const updated = await outletService.updateOutlet(id, outletData);
         await refreshOutlets();
-        showToast(`Outlet "${updated.name}" updated successfully.`, 'success');
+        if (!silent) {
+          showToast(`Outlet "${updated.name}" updated successfully.`, 'success');
+        }
         return updated;
       } catch (err) {
-        showToast(err.message || 'Failed to update outlet.', 'error');
+        if (!silent) {
+          showToast(err.message || 'Failed to update outlet.', 'error');
+        }
         throw err;
       }
     },
@@ -102,12 +106,29 @@ export function OutletProvider({ children }) {
         await outletService.deleteOutlet(id, hardDelete);
         await refreshOutlets();
         showToast(
-          `Outlet "${target ? target.name : id}" has been ${hardDelete ? 'permanently removed' : 'archived'}.`,
+          `Outlet "${target ? target.name : id}" has been ${hardDelete ? 'permanently removed' : 'moved to Deleted Outlets'}.`,
           'info'
         );
         return true;
       } catch (err) {
         showToast(err.message || 'Failed to delete outlet.', 'error');
+        throw err;
+      }
+    },
+    [outlets, refreshOutlets, showToast]
+  );
+
+  // Restore outlet
+  const restoreOutlet = useCallback(
+    async (id) => {
+      try {
+        const target = outlets.find((o) => o.id === id);
+        await outletService.restoreOutlet(id);
+        await refreshOutlets();
+        showToast(`Outlet "${target ? target.name : id}" restored to active registry.`, 'success');
+        return true;
+      } catch (err) {
+        showToast(err.message || 'Failed to restore outlet.', 'error');
         throw err;
       }
     },
@@ -166,6 +187,47 @@ export function OutletProvider({ children }) {
       }
     },
     [vendors, refreshVendors, showToast]
+  );
+
+  // Delete vendor (hard delete permanently removes record)
+  const deleteVendor = useCallback(
+    async (id, hardDelete = true) => {
+      try {
+        const target = vendors.find(
+          (v) => String(v.id).toUpperCase() === String(id).toUpperCase()
+        );
+        await vendorService.deleteVendor(id, hardDelete);
+        await refreshVendors();
+        showToast(
+          `Vendor "${target ? (target.brandName || target.businessName) : id}" has been ${hardDelete ? 'permanently deleted' : 'archived'}.`,
+          hardDelete ? 'error' : 'info'
+        );
+        return true;
+      } catch (err) {
+        showToast(err.message || 'Failed to delete vendor.', 'error');
+        throw err;
+      }
+    },
+    [vendors, refreshVendors, showToast]
+  );
+
+  // Toggle Block vendor
+  const toggleBlockVendor = useCallback(
+    async (id) => {
+      try {
+        const updated = await vendorService.toggleBlockVendor(id);
+        await refreshVendors();
+        showToast(
+          `Vendor "${updated.businessName || id}" is now ${updated.status}.`,
+          updated.status === 'Blocked' ? 'warning' : 'success'
+        );
+        return updated;
+      } catch (err) {
+        showToast(err.message || 'Failed to toggle vendor status.', 'error');
+        throw err;
+      }
+    },
+    [refreshVendors, showToast]
   );
 
   // Reset to initial mock data (both outlets & vendors)
@@ -288,10 +350,13 @@ export function OutletProvider({ children }) {
     createOutlet,
     updateOutlet,
     deleteOutlet,
+    restoreOutlet,
     // Vendor methods
     createVendor,
     updateVendor,
     archiveVendor,
+    deleteVendor,
+    toggleBlockVendor,
     resetToDefaults,
     // Selectors
     getStationMetrics,

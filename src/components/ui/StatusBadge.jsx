@@ -38,6 +38,13 @@ export default function StatusBadge({
         label: 'Inactive',
       };
       break;
+    case 'blocked':
+      styles = {
+        badge: 'bg-rose-50 text-rose-700 border-rose-200',
+        dot: 'bg-rose-600',
+        label: 'Blocked',
+      };
+      break;
     case 'closed':
       styles = {
         badge: 'bg-rose-50 text-rose-700 border-rose-200',

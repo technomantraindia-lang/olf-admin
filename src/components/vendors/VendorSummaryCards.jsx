@@ -1,6 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
-import { Users, CheckCircle2, Clock, PauseCircle, Store } from 'lucide-react';
+import { Users, Clock, PauseCircle, Store, Ban } from 'lucide-react';
 
 export default function VendorSummaryCards({
   metrics,
@@ -10,6 +10,7 @@ export default function VendorSummaryCards({
   const {
     total = 0,
     active = 0,
+    blocked = 0,
     pending = 0,
     inactive = 0,
     totalOutlets = 0,
@@ -20,70 +21,56 @@ export default function VendorSummaryCards({
       id: 'ALL',
       title: 'Total Vendors',
       count: total,
+      subBadge: `${active} Active`,
       icon: Users,
-      bg: 'bg-white',
-      border: 'border-slate-200',
-      activeBorder: 'ring-2 ring-slate-900 border-transparent',
-      text: 'text-slate-900',
-      iconColor: 'text-slate-600',
-      badge: 'All Partners',
-    },
-    {
-      id: 'Active',
-      title: 'Active Vendors',
-      count: active,
-      icon: CheckCircle2,
-      bg: 'bg-emerald-50/40',
-      border: 'border-emerald-200',
-      activeBorder: 'ring-2 ring-emerald-600 border-transparent',
-      text: 'text-emerald-800',
-      iconColor: 'text-emerald-600',
-      badge: 'Approved',
+      iconColor: 'text-blue-600',
+      iconBg: 'bg-blue-50',
     },
     {
       id: 'Pending',
       title: 'Pending Review',
       count: pending,
       icon: Clock,
-      bg: 'bg-amber-50/40',
-      border: 'border-amber-200',
-      activeBorder: 'ring-2 ring-amber-500 border-transparent',
-      text: 'text-amber-800',
       iconColor: 'text-amber-600',
-      badge: 'Compliance Due',
+      iconBg: 'bg-amber-50',
+    },
+    {
+      id: 'Blocked',
+      title: 'Blocked Vendors',
+      count: blocked,
+      icon: Ban,
+      iconColor: 'text-rose-600',
+      iconBg: 'bg-rose-50',
     },
     {
       id: 'Inactive',
       title: 'Inactive / Paused',
       count: inactive,
       icon: PauseCircle,
-      bg: 'bg-slate-50/50',
-      border: 'border-slate-200',
-      activeBorder: 'ring-2 ring-slate-400 border-transparent',
-      text: 'text-slate-700',
       iconColor: 'text-slate-500',
-      badge: 'Paused',
+      iconBg: 'bg-slate-100',
     },
     {
       id: 'outlets',
-      title: 'Associated Outlets',
+      title: 'Linked Outlets',
       count: totalOutlets,
       icon: Store,
-      bg: 'bg-indigo-50/40',
-      border: 'border-indigo-200',
-      activeBorder: 'ring-2 ring-indigo-600 border-transparent',
-      text: 'text-indigo-800',
       iconColor: 'text-indigo-600',
-      badge: 'Multi-Station',
+      iconBg: 'bg-indigo-50',
       isOutletCard: true,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 my-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 my-5">
       {cards.map((card) => {
         const Icon = card.icon;
-        const isSelected = !card.isOutletCard && activeStatusFilter.toLowerCase() === card.id.toLowerCase();
+        const isSelected =
+          !card.isOutletCard &&
+          (activeStatusFilter.toLowerCase() === card.id.toLowerCase() ||
+            (card.id === 'ALL' &&
+              (activeStatusFilter.toLowerCase() === 'all' ||
+                activeStatusFilter.toLowerCase() === 'active')));
 
         return (
           <div
@@ -94,40 +81,57 @@ export default function VendorSummaryCards({
               }
             }}
             className={clsx(
-              'p-4 rounded-xl border transition-all duration-200 select-none group relative overflow-hidden',
-              card.bg,
-              card.border,
+              'p-4 rounded-xl border bg-white transition-all select-none',
               !card.isOutletCard && onStatusClick &&
-                'cursor-pointer hover:shadow-lg hover:-translate-y-1 active:scale-[0.99] hover:border-slate-300',
-              isSelected ? card.activeBorder : 'hover:ring-1 hover:ring-slate-300/80'
+                'cursor-pointer hover:border-slate-300 hover:shadow-xs active:scale-[0.99]',
+              isSelected
+                ? 'ring-2 ring-blue-600 border-transparent shadow-xs bg-blue-50/15'
+                : 'border-slate-200/80 shadow-2xs'
             )}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
+              <span className="text-xs font-medium text-slate-500">
                 {card.title}
               </span>
-              <div className="w-7 h-7 rounded-lg bg-white/80 border border-slate-100 flex items-center justify-center group-hover:bg-white transition-all shadow-xs">
-                <Icon
-                  className={clsx(
-                    'w-4 h-4 group-hover:scale-125 transition-transform duration-200',
-                    card.iconColor
-                  )}
-                />
+              <div
+                className={clsx(
+                  'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
+                  card.iconBg
+                )}
+              >
+                <Icon className={clsx('w-3.5 h-3.5', card.iconColor)} />
               </div>
             </div>
 
             <div className="flex items-baseline justify-between mt-1">
-              <span
-                className={clsx(
-                  'text-2xl font-bold tracking-tight group-hover:scale-105 transition-transform duration-200 origin-left',
-                  card.text
-                )}
-              >
+              <span className="text-2xl font-bold tracking-tight text-slate-900">
                 {card.count}
               </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 shadow-2xs group-hover:border-slate-300 transition-colors">
-                {card.badge}
-              </span>
+              {card.subBadge && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onStatusClick) {
+                      onStatusClick(activeStatusFilter.toLowerCase() === 'active' ? 'ALL' : 'Active');
+                    }
+                  }}
+                  className={clsx(
+                    'inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full cursor-pointer transition-colors',
+                    activeStatusFilter.toLowerCase() === 'active'
+                      ? 'bg-emerald-600 text-white shadow-2xs'
+                      : 'text-emerald-700 bg-emerald-50 border border-emerald-200/80 hover:bg-emerald-100'
+                  )}
+                  title="Click to toggle Active vendors filter"
+                >
+                  <span
+                    className={clsx(
+                      'w-1.5 h-1.5 rounded-full',
+                      activeStatusFilter.toLowerCase() === 'active' ? 'bg-white' : 'bg-emerald-500'
+                    )}
+                  />
+                  <span>{card.subBadge}</span>
+                </span>
+              )}
             </div>
           </div>
         );

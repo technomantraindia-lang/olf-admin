@@ -1,209 +1,179 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Plus,
-  Search,
-  Train,
-  Layers,
-  RotateCcw,
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Building2, Plus, Store, CheckCircle2, Leaf } from 'lucide-react';
 import { useOutlets } from '../../context/OutletContext';
-import OutletSummaryCards from '../../components/outlets/OutletSummaryCards';
-import StationCard from '../../components/outlets/StationCard';
-import Button from '../../components/ui/Button';
-import EmptyState from '../../components/ui/EmptyState';
+import { outletService } from '../../services/outletService';
+import OutletTable from '../../components/outlets/OutletTable';
 
 export default function OutletsOverview() {
-  const navigate = useNavigate();
-  const { stations, getStationMetrics, getGlobalMetrics, resetToDefaults } = useOutlets();
-  const [stationSearch, setStationSearch] = useState('');
-  const [stateFilter, setStateFilter] = useState('ALL');
+  const { outlets, vendors } = useOutlets();
+  const [backendStatus, setBackendStatus] = useState({ checked: false, connected: false, irctcConnected: false });
 
-  // Compute global summary counts
-  const globalMetrics = useMemo(() => {
-    return getGlobalMetrics();
-  }, [getGlobalMetrics]);
-
-  // Extract unique states for filter
-  const uniqueStates = useMemo(() => {
-    const states = stations.map((s) => s.state);
-    return ['ALL', ...Array.from(new Set(states))];
-  }, [stations]);
-
-  // Filter stations based on search and state
-  const filteredStations = useMemo(() => {
-    return stations.filter((station) => {
-      const q = stationSearch.toLowerCase().trim();
-      const matchesSearch =
-        q === '' ||
-        station.name.toLowerCase().includes(q) ||
-        station.code.toLowerCase().includes(q) ||
-        station.state.toLowerCase().includes(q) ||
-        (station.division && station.division.toLowerCase().includes(q));
-
-      const matchesState =
-        stateFilter === 'ALL' || station.state.toLowerCase() === stateFilter.toLowerCase();
-
-      return matchesSearch && matchesState;
+  useEffect(() => {
+    outletService.checkBackendConnection().then((res) => {
+      setBackendStatus({
+        checked: true,
+        connected: res.connected,
+        irctcConnected: Boolean(res.data?.irctcConnection?.connected),
+      });
     });
-  }, [stations, stationSearch, stateFilter]);
+  }, []);
+
+  const activeOutlets = outlets.filter(
+    (o) => o.status !== 'Archived' && o.status !== 'Deleted' && o.archived !== true
+  );
+  const totalCount = activeOutlets.length;
+  const listedCount = activeOutlets.filter((o) => o.listed !== false).length;
+  const pureVegCount = activeOutlets.filter((o) => o.mealType === 'PURE_VEG').length;
+  const activePercentage = totalCount > 0 ? ((listedCount / totalCount) * 100).toFixed(1) : '100.0';
 
   return (
-    <div className="space-y-6 w-full">
-      {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200">
+    <div className="space-y-6 w-full pb-8">
+      {/* Page Title & Status Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Outlets Management
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              OLF Outlets Management
             </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Station-First View
-            </span>
+
+            {/* Micro Eyebrow Badges with distinct glowing indicators */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+                </span>
+                <span>IRCTC Sync Ready</span>
+              </span>
+
+              {backendStatus.checked && (
+                <span
+                  className={`inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-bold border shadow-2xs ${
+                    backendStatus.connected
+                      ? 'bg-blue-50 text-blue-800 border-blue-300'
+                      : 'bg-slate-100 text-slate-700 border-slate-300'
+                  }`}
+                  title={backendStatus.connected ? 'OLF Express Backend on Port 4000 linked to IRCTC' : 'Start OLF Backend on Port 4000'}
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${backendStatus.connected ? 'bg-blue-400' : 'bg-slate-400'} opacity-75`} />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${backendStatus.connected ? 'bg-blue-600' : 'bg-slate-500'}`} />
+                  </span>
+                  <span>
+                    {backendStatus.connected
+                      ? `OLF Backend: Port 4000 ${backendStatus.irctcConnected ? '(IRCTC Linked)' : ''}`
+                      : 'OLF Backend: Offline'}
+                  </span>
+                </span>
+              )}
+            </div>
           </div>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage restaurant outlets across railway stations and monitor their associated vendors.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Manage railway station restaurants, vendor associations, FSSAI compliance, and IRCTC eCatering v3 live catalog.
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="md"
-            leftIcon={RotateCcw}
-            onClick={resetToDefaults}
-            title="Reset to default mock data"
+        {/* Quick Directory & Add Outlet Buttons with low border-radius */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Link
+            to="/outlets/vendors"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 shadow-2xs hover:shadow-xs transition-all"
           >
-            Reset Data
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={() => navigate('/outlets/all')}
+            <Building2 className="w-4 h-4 text-blue-600" />
+            <span>Vendors Directory ({vendors.length})</span>
+          </Link>
+          <Link
+            to="/outlets/new"
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-2xs hover:shadow-xs transition-all"
           >
-            View All Outlets
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="md"
-            leftIcon={Plus}
-            onClick={() => navigate('/outlets/vendors/new')}
-            className="text-emerald-800 border-emerald-200 hover:bg-emerald-50"
-          >
-            Add Vendor
-          </Button>
-
-          <Button
-            variant="primary"
-            size="md"
-            leftIcon={Plus}
-            onClick={() => navigate('/outlets/BRC/new')}
-          >
-            Add Outlet
-          </Button>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Add Outlet</span>
+          </Link>
         </div>
       </div>
 
-      {/* Global Outlets Summary Cards */}
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Layers className="w-4 h-4 text-slate-500" />
-            Network Operational Summary
-          </h2>
-          <span className="text-xs text-slate-500">
-            Across {stations.length} Indian Railway Junctions
-          </span>
-        </div>
-
-        <OutletSummaryCards
-          metrics={globalMetrics}
-          activeStatusFilter="ALL"
-          onStatusClick={(statusId) => {
-            if (statusId === 'ALL') {
-              navigate('/outlets/all');
-            } else {
-              navigate(`/outlets/filter/${statusId.toLowerCase()}`);
-            }
-          }}
-        />
-      </div>
-
-      {/* Railway Stations Grid Section */}
-      <div className="space-y-4">
-        {/* Section title & Station Search/Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-colors">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Train className="w-4 h-4 text-emerald-600" />
-              Railway Station Hubs
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Select any station to inspect its vendor outlets, menus, and wallet health
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            {/* Station Search */}
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={stationSearch}
-                onChange={(e) => setStationSearch(e.target.value)}
-                placeholder="Search station or code (e.g. BRC)..."
-                className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all w-52 sm:w-64"
-              />
+      {/* 4 Metric / KPI Cards Row with low border-radius and clean low gap */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Card 1: Total Outlets */}
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs hover:shadow-xs transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Total Outlets
+            </span>
+            <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Store className="w-3.5 h-3.5" />
             </div>
-
-            {/* State Filter */}
-            <select
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
-              className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all cursor-pointer"
-            >
-              <option value="ALL">All States</option>
-              {uniqueStates
-                .filter((st) => st !== 'ALL')
-                .map((state) => (
-                  <option key={state} value={state}>
-                    {state}
-                  </option>
-                ))}
-            </select>
+          </div>
+          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">
+            {totalCount}
+          </div>
+          <div className="text-xs font-medium text-slate-500 mt-1.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            <span>Across stations ({totalCount} active)</span>
           </div>
         </div>
 
-        {/* Stations Grid - Spacious responsive layout */}
-        {filteredStations.length === 0 ? (
-          <EmptyState
-            icon={Train}
-            title="No railway stations found"
-            description={`No railway station matches "${stationSearch}". Try clearing the search query or state filter.`}
-            actionLabel="Reset Search"
-            onAction={() => {
-              setStationSearch('');
-              setStateFilter('ALL');
-            }}
-          />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-5">
-            {filteredStations.map((station) => {
-              const metrics = getStationMetrics(station.code);
-              return (
-                <StationCard
-                  key={station.code}
-                  station={station}
-                  metrics={metrics}
-                />
-              );
-            })}
+        {/* Card 2: IRCTC Listed */}
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs hover:shadow-xs transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              IRCTC Listed
+            </span>
+            <div className="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+            </div>
           </div>
-        )}
+          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">
+            {listedCount}
+          </div>
+          <div className="text-xs font-medium text-emerald-600 mt-1.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>{activePercentage}% live in IRCTC catalog</span>
+          </div>
+        </div>
+
+        {/* Card 3: Pure Veg Outlets */}
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs hover:shadow-xs transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Pure Veg Outlets
+            </span>
+            <div className="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <Leaf className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">
+            {pureVegCount}
+          </div>
+          <div className="text-xs font-medium text-slate-500 mt-1.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>{pureVegCount > 0 ? `${pureVegCount} certified veg` : 'Certified vegetarian'}</span>
+          </div>
+        </div>
+
+        {/* Card 4: Active Vendors */}
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs hover:shadow-xs transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Active Vendors
+            </span>
+            <div className="w-7 h-7 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Building2 className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">
+            {vendors.length}
+          </div>
+          <div className="text-xs font-medium text-slate-500 mt-1.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            <span>Partner brands with numeric IDs</span>
+          </div>
+        </div>
       </div>
+
+      {/* Main Outlets Table & Filters */}
+      <OutletTable defaultView="stations" />
     </div>
   );
 }

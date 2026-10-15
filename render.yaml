@@ -1,0 +1,40 @@
+services:
+  # ===================================================
+  # 1. Express Backend Web Service (Node.js)
+  # ===================================================
+  - type: web
+    name: olf-backend
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: IRCTC_BASE_URL
+        value: http://localhost:5000/api
+      - key: IRCTC_AUTH_TOKEN
+        value: mock_secret_test_token
+
+  # ===================================================
+  # 2. React + Vite Frontend (Static Site - Free CDN)
+  # ===================================================
+  - type: static
+    name: olf-frontend
+    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      # SPA rewrite rule so React Router routes don't 404 on refresh
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: olf-backend
+          property: host
