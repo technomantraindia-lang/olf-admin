@@ -20,13 +20,13 @@ services:
         value: mock_secret_test_token
 
   # ===================================================
-  # 2. React + Vite Frontend (Static Site - Free CDN)
+  # 2. React + Vite Frontend (Static Site on Render CDN)
   # ===================================================
-  - type: static
+  - type: web
     name: olf-frontend
-    plan: free
+    runtime: static
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    staticPublishPath: dist
     routes:
       # SPA rewrite rule so React Router routes don't 404 on refresh
       - type: rewrite
