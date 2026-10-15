@@ -45,8 +45,7 @@ const FOOD_THUMBNAILS = [
 // Curated harmonious color themes for station cards and quick filters
 const STATION_COLOR_THEMES = [
   {
-    iconBg: 'bg-blue-600 text-white shadow-sm shadow-blue-500/25',
-    iconLight: 'bg-blue-50 text-blue-600 border border-blue-200/80 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all',
+    iconBadge: 'bg-blue-50 text-blue-600 border border-blue-200/90 group-hover:border-blue-300 group-hover:bg-blue-100/50',
     codeBadge: 'bg-blue-50 text-blue-700 border-blue-200/90',
     countBadge: 'bg-blue-50 text-blue-700 border-blue-200',
     hoverBorder: 'hover:border-blue-400',
@@ -55,8 +54,7 @@ const STATION_COLOR_THEMES = [
     viewLink: 'text-blue-600 group-hover:text-blue-700',
   },
   {
-    iconBg: 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/25',
-    iconLight: 'bg-emerald-50 text-emerald-600 border border-emerald-200/80 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-all',
+    iconBadge: 'bg-emerald-50 text-emerald-600 border border-emerald-200/90 group-hover:border-emerald-300 group-hover:bg-emerald-100/50',
     codeBadge: 'bg-emerald-50 text-emerald-700 border-emerald-200/90',
     countBadge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     hoverBorder: 'hover:border-emerald-400',
@@ -65,8 +63,7 @@ const STATION_COLOR_THEMES = [
     viewLink: 'text-emerald-600 group-hover:text-emerald-700',
   },
   {
-    iconBg: 'bg-purple-600 text-white shadow-sm shadow-purple-500/25',
-    iconLight: 'bg-purple-50 text-purple-600 border border-purple-200/80 group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-600 transition-all',
+    iconBadge: 'bg-purple-50 text-purple-600 border border-purple-200/90 group-hover:border-purple-300 group-hover:bg-purple-100/50',
     codeBadge: 'bg-purple-50 text-purple-700 border-purple-200/90',
     countBadge: 'bg-purple-50 text-purple-700 border-purple-200',
     hoverBorder: 'hover:border-purple-400',
@@ -75,8 +72,7 @@ const STATION_COLOR_THEMES = [
     viewLink: 'text-purple-600 group-hover:text-purple-700',
   },
   {
-    iconBg: 'bg-amber-600 text-white shadow-sm shadow-amber-500/25',
-    iconLight: 'bg-amber-50 text-amber-700 border border-amber-200/80 group-hover:bg-amber-600 group-hover:text-white group-hover:border-amber-600 transition-all',
+    iconBadge: 'bg-amber-50 text-amber-600 border border-amber-200/90 group-hover:border-amber-300 group-hover:bg-amber-100/50',
     codeBadge: 'bg-amber-50 text-amber-800 border-amber-200/90',
     countBadge: 'bg-amber-50 text-amber-800 border-amber-200',
     hoverBorder: 'hover:border-amber-400',
@@ -85,8 +81,7 @@ const STATION_COLOR_THEMES = [
     viewLink: 'text-amber-600 group-hover:text-amber-700',
   },
   {
-    iconBg: 'bg-rose-600 text-white shadow-sm shadow-rose-500/25',
-    iconLight: 'bg-rose-50 text-rose-600 border border-rose-200/80 group-hover:bg-rose-600 group-hover:text-white group-hover:border-rose-600 transition-all',
+    iconBadge: 'bg-rose-50 text-rose-600 border border-rose-200/90 group-hover:border-rose-300 group-hover:bg-rose-100/50',
     codeBadge: 'bg-rose-50 text-rose-700 border-rose-200/90',
     countBadge: 'bg-rose-50 text-rose-700 border-rose-200',
     hoverBorder: 'hover:border-rose-400',
@@ -95,8 +90,7 @@ const STATION_COLOR_THEMES = [
     viewLink: 'text-rose-600 group-hover:text-rose-700',
   },
   {
-    iconBg: 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/25',
-    iconLight: 'bg-indigo-50 text-indigo-600 border border-indigo-200/80 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all',
+    iconBadge: 'bg-indigo-50 text-indigo-600 border border-indigo-200/90 group-hover:border-indigo-300 group-hover:bg-indigo-100/50',
     codeBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200/90',
     countBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     hoverBorder: 'hover:border-indigo-400',
@@ -105,8 +99,7 @@ const STATION_COLOR_THEMES = [
     viewLink: 'text-indigo-600 group-hover:text-indigo-700',
   },
   {
-    iconBg: 'bg-teal-600 text-white shadow-sm shadow-teal-500/25',
-    iconLight: 'bg-teal-50 text-teal-600 border border-teal-200/80 group-hover:bg-teal-600 group-hover:text-white group-hover:border-teal-600 transition-all',
+    iconBadge: 'bg-teal-50 text-teal-600 border border-teal-200/90 group-hover:border-teal-300 group-hover:bg-teal-100/50',
     codeBadge: 'bg-teal-50 text-teal-800 border-teal-200/90',
     countBadge: 'bg-teal-50 text-teal-800 border-teal-200',
     hoverBorder: 'hover:border-teal-400',
@@ -115,8 +108,7 @@ const STATION_COLOR_THEMES = [
     viewLink: 'text-teal-600 group-hover:text-teal-700',
   },
   {
-    iconBg: 'bg-cyan-600 text-white shadow-sm shadow-cyan-500/25',
-    iconLight: 'bg-cyan-50 text-cyan-700 border border-cyan-200/80 group-hover:bg-cyan-600 group-hover:text-white group-hover:border-cyan-600 transition-all',
+    iconBadge: 'bg-cyan-50 text-cyan-700 border border-cyan-200/90 group-hover:border-cyan-300 group-hover:bg-cyan-100/50',
     codeBadge: 'bg-cyan-50 text-cyan-800 border-cyan-200/90',
     countBadge: 'bg-cyan-50 text-cyan-800 border-cyan-200',
     hoverBorder: 'hover:border-cyan-400',
@@ -996,7 +988,7 @@ export default function OutletTable({ presetStation = null, presetFilter = null,
 
               return (
                 <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
-                  <div className="w-10 h-10 rounded-md bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-2xs shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/90 flex items-center justify-center font-bold text-sm shadow-2xs shrink-0">
                     <Train className="w-5 h-5 stroke-[2.2]" />
                   </div>
                   <div>
@@ -1093,9 +1085,7 @@ export default function OutletTable({ presetStation = null, presetFilter = null,
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3.5 min-w-0 flex-1">
                         <div
-                          className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-all duration-200 group-hover:scale-105 shadow-2xs ${
-                            count > 0 ? theme.iconBg : theme.iconLight
-                          }`}
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-all duration-200 group-hover:scale-105 shadow-2xs ${theme.iconBadge}`}
                         >
                           <Train className="w-6 h-6 stroke-[2.2]" />
                         </div>
